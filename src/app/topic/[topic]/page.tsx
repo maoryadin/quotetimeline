@@ -1,17 +1,19 @@
+export const dynamic = 'force-dynamic';
+
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { SiteFooter } from '@/components/SiteFooter';
 import { SiteHeader } from '@/components/SiteHeader';
-import { TOPICS, QUOTES, slugifyQuote } from '@/lib/sample-data';
+import { getQuotesByTopic, getTopicBySlug } from '@/lib/data';
 
 type Props = { params: Promise<{ topic: string }> };
 
 export default async function TopicPage({ params }: Props) {
   const { topic } = await params;
-  const t = TOPICS.find((x) => x.slug === topic);
+  const t = await getTopicBySlug(topic);
   if (!t) return notFound();
 
-  const quotes = QUOTES.filter((q) => q.topics.includes(topic)).sort((a, b) => (a.date < b.date ? 1 : -1));
+  const quotes = await getQuotesByTopic(topic);
 
   return (
     <>
@@ -41,14 +43,12 @@ export default async function TopicPage({ params }: Props) {
         <section className="mt-10">
           <h2 className="text-lg font-semibold">Quotes</h2>
           <ul className="mt-4 grid grid-cols-1 gap-3">
-            {quotes.map((q) => {
-              const slug = slugifyQuote(q.text, q.date);
-              return (
-                <li
-                  key={q.id}
-                  className="rounded-2xl border border-slate-200/70 bg-white/60 p-5 shadow-sm hover:bg-white dark:border-white/10 dark:bg-black/20"
-                >
-                  <Link href={`/quote/${slug}`} className="block">
+            {quotes.map((q) => (
+              <li
+                key={q.id}
+                className="rounded-2xl border border-slate-200/70 bg-white/60 p-5 shadow-sm hover:bg-white dark:border-white/10 dark:bg-black/20"
+              >
+                <Link href={`/quote/${q.slug}`} className="block">
                     <div className="flex items-baseline justify-between gap-3">
                       <div className="text-xs text-slate-500 dark:text-slate-400">{q.date}</div>
                       <div className="text-xs text-slate-500 dark:text-slate-400">{q.source.publisher ?? 'Source'}</div>
@@ -64,9 +64,8 @@ export default async function TopicPage({ params }: Props) {
                       {q.source.title}
                     </a>
                   </div>
-                </li>
-              );
-            })}
+              </li>
+            ))}
           </ul>
         </section>
 

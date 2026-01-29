@@ -1,6 +1,8 @@
+export const dynamic = 'force-dynamic';
+
 import Link from 'next/link';
 import { SearchBar } from '@/components/SearchBar';
-import { searchQuotes, slugifyQuote } from '@/lib/sample-data';
+import { searchQuotes } from '@/lib/data';
 
 type Props = {
   searchParams: Promise<{ q?: string }>;
@@ -9,7 +11,7 @@ type Props = {
 export default async function SearchPage({ searchParams }: Props) {
   const { q = '' } = await searchParams;
   const query = (q ?? '').trim();
-  const results = query ? searchQuotes(query) : [];
+  const results = query ? await searchQuotes(query) : [];
 
   return (
     <main className="mx-auto max-w-5xl px-6 py-10">
@@ -21,9 +23,7 @@ export default async function SearchPage({ searchParams }: Props) {
 
       <header className="mt-6">
         <h1 className="text-3xl font-semibold tracking-tight">Search</h1>
-        <p className="mt-2 text-slate-600 dark:text-slate-300">
-          Find quotes by keyword. (MVP uses sample data; later we’ll index real sources.)
-        </p>
+        <p className="mt-2 text-slate-600 dark:text-slate-300">Find quotes by keyword across text, context, sources, and people.</p>
         <div className="mt-6">
           <SearchBar initialQuery={query} />
         </div>
@@ -37,11 +37,12 @@ export default async function SearchPage({ searchParams }: Props) {
         )}
 
         <ul className="mt-4 grid grid-cols-1 gap-3">
-          {results.map((r) => {
-            const slug = slugifyQuote(r.text, r.date);
-            return (
-              <li key={r.id} className="group rounded-2xl border border-slate-200/70 bg-white/60 p-5 shadow-sm hover:bg-white dark:border-white/10 dark:bg-black/20">
-                <Link href={`/quote/${slug}`} className="block">
+          {results.map((r) => (
+            <li
+              key={r.id}
+              className="group rounded-2xl border border-slate-200/70 bg-white/60 p-5 shadow-sm hover:bg-white dark:border-white/10 dark:bg-black/20"
+            >
+              <Link href={`/quote/${r.slug}`} className="block">
                   <div className="flex items-baseline justify-between gap-3">
                     <div className="text-xs text-slate-500 dark:text-slate-400">{r.date}</div>
                     <div className="text-xs text-slate-500 dark:text-slate-400">{r.source.publisher ?? 'Source'}</div>
@@ -51,9 +52,8 @@ export default async function SearchPage({ searchParams }: Props) {
                     <div className="mt-2 line-clamp-2 text-sm text-slate-600 dark:text-slate-300">{r.context}</div>
                   ) : null}
                 </Link>
-              </li>
-            );
-          })}
+            </li>
+          ))}
         </ul>
       </section>
     </main>

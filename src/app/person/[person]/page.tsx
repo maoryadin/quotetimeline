@@ -1,17 +1,19 @@
+export const dynamic = 'force-dynamic';
+
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { SiteFooter } from '@/components/SiteFooter';
 import { SiteHeader } from '@/components/SiteHeader';
-import { PEOPLE, QUOTES, slugifyQuote, TOPICS } from '@/lib/sample-data';
+import { getPersonBySlug, getQuotesByPerson, getTopics } from '@/lib/data';
 
 type Props = { params: Promise<{ person: string }> };
 
 export default async function PersonPage({ params }: Props) {
   const { person } = await params;
-  const p = PEOPLE.find((x) => x.slug === person);
+  const p = await getPersonBySlug(person);
   if (!p) return notFound();
 
-  const quotes = QUOTES.filter((q) => q.personSlug === person).sort((a, b) => (a.date < b.date ? 1 : -1));
+  const [quotes, topics] = await Promise.all([getQuotesByPerson(person), getTopics()]);
 
   const topicCounts = new Map<string, number>();
   for (const q of quotes) for (const t of q.topics) topicCounts.set(t, (topicCounts.get(t) ?? 0) + 1);
@@ -37,7 +39,7 @@ export default async function PersonPage({ params }: Props) {
         <section className="mt-10">
           <h2 className="text-lg font-semibold">Top topics</h2>
           <ul className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2">
-            {TOPICS.map((t) => (
+            {topics.map((t) => (
               <li
                 key={t.slug}
                 className="rounded-2xl border border-slate-200/70 bg-white/60 p-5 shadow-sm hover:bg-white dark:border-white/10 dark:bg-black/20"
@@ -45,7 +47,7 @@ export default async function PersonPage({ params }: Props) {
                 <Link className="block" href={`/topic/${t.slug}`}>
                   <div className="text-base font-semibold text-slate-900 dark:text-slate-100">{t.name}</div>
                   <div className="mt-2 text-xs text-slate-500 dark:text-slate-400">
-                    {topicCounts.get(t.slug) ?? 0} quotes (sample)
+                    {topicCounts.get(t.slug) ?? 0} quotes
                   </div>
                 </Link>
               </li>
@@ -56,14 +58,12 @@ export default async function PersonPage({ params }: Props) {
         <section className="mt-10">
           <h2 className="text-lg font-semibold">Quotes</h2>
           <ul className="mt-4 grid grid-cols-1 gap-3">
-            {quotes.map((q) => {
-              const slug = slugifyQuote(q.text, q.date);
-              return (
-                <li
-                  key={q.id}
-                  className="rounded-2xl border border-slate-200/70 bg-white/60 p-5 shadow-sm hover:bg-white dark:border-white/10 dark:bg-black/20"
-                >
-                  <Link href={`/quote/${slug}`} className="block">
+            {quotes.map((q) => (
+              <li
+                key={q.id}
+                className="rounded-2xl border border-slate-200/70 bg-white/60 p-5 shadow-sm hover:bg-white dark:border-white/10 dark:bg-black/20"
+              >
+                <Link href={`/quote/${q.slug}`} className="block">
                     <div className="flex items-baseline justify-between gap-3">
                       <div className="text-xs text-slate-500 dark:text-slate-400">{q.date}</div>
                       <div className="text-xs text-slate-500 dark:text-slate-400">{q.source.publisher ?? 'Source'}</div>
@@ -73,9 +73,8 @@ export default async function PersonPage({ params }: Props) {
                       <div className="mt-2 line-clamp-2 text-sm text-slate-600 dark:text-slate-300">{q.context}</div>
                     ) : null}
                   </Link>
-                </li>
-              );
-            })}
+              </li>
+            ))}
           </ul>
         </section>
 

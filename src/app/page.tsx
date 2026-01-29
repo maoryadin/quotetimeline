@@ -1,15 +1,16 @@
+export const dynamic = 'force-dynamic';
+
 import Link from 'next/link';
 import { SiteHeader } from '@/components/SiteHeader';
 import { SiteFooter } from '@/components/SiteFooter';
 import { SearchBar } from '@/components/SearchBar';
-import { PEOPLE, TOPICS, QUOTES, slugifyQuote } from '@/lib/sample-data';
+import { getLatestQuotes, getPeople, getTopics } from '@/lib/data';
 
-export default function Home() {
-  const trump = PEOPLE[0];
-
-  const latest = [...QUOTES]
-    .sort((a, b) => (a.date < b.date ? 1 : -1))
-    .slice(0, 6);
+export default async function Home() {
+  const people = await getPeople();
+  const topics = await getTopics();
+  const latest = await getLatestQuotes(6);
+  const featured = people[0];
 
   return (
     <>
@@ -36,9 +37,9 @@ export default function Home() {
             <div className="mt-6 flex flex-wrap gap-2">
               <Link
                 className="rounded-xl bg-slate-900 px-4 py-2 text-sm font-medium text-white hover:bg-slate-800 dark:bg-white dark:text-slate-900"
-                href={`/person/${trump.slug}`}
+                href={featured ? `/person/${featured.slug}` : '/search'}
               >
-                Browse {trump.name}
+                Browse {featured?.name ?? 'quotes'}
               </Link>
               <Link
                 className="rounded-xl border border-slate-200 bg-white/80 px-4 py-2 text-sm font-medium text-slate-900 hover:bg-white dark:border-white/10 dark:bg-black/20 dark:text-slate-100"
@@ -57,7 +58,7 @@ export default function Home() {
           </div>
 
           <ul className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2">
-            {TOPICS.map((t) => (
+            {topics.map((t) => (
               <li
                 key={t.slug}
                 className="group rounded-2xl border border-slate-200/70 bg-white/60 p-5 shadow-sm transition hover:-translate-y-0.5 hover:bg-white dark:border-white/10 dark:bg-black/20"
@@ -75,20 +76,20 @@ export default function Home() {
         <section className="mt-10">
           <div className="flex items-end justify-between gap-4">
             <h2 className="text-lg font-semibold">Latest quotes</h2>
-            <Link className="text-sm text-indigo-700 hover:underline dark:text-indigo-300" href={`/person/${trump.slug}`}>
-              View all →
-            </Link>
+            {featured ? (
+              <Link className="text-sm text-indigo-700 hover:underline dark:text-indigo-300" href={`/person/${featured.slug}`}>
+                View all →
+              </Link>
+            ) : null}
           </div>
 
           <ul className="mt-4 grid grid-cols-1 gap-3">
-            {latest.map((q) => {
-              const slug = slugifyQuote(q.text, q.date);
-              return (
-                <li
-                  key={q.id}
-                  className="rounded-2xl border border-slate-200/70 bg-white/60 p-5 shadow-sm hover:bg-white dark:border-white/10 dark:bg-black/20"
-                >
-                  <Link href={`/quote/${slug}`} className="block">
+            {latest.map((q) => (
+              <li
+                key={q.id}
+                className="rounded-2xl border border-slate-200/70 bg-white/60 p-5 shadow-sm hover:bg-white dark:border-white/10 dark:bg-black/20"
+              >
+                <Link href={`/quote/${q.slug}`} className="block">
                     <div className="flex items-baseline justify-between gap-3">
                       <div className="text-xs text-slate-500 dark:text-slate-400">{q.date}</div>
                       <div className="text-xs text-slate-500 dark:text-slate-400">{q.source.publisher ?? 'Source'}</div>
@@ -98,13 +99,12 @@ export default function Home() {
                       <div className="mt-2 line-clamp-2 text-sm text-slate-600 dark:text-slate-300">{q.context}</div>
                     ) : null}
                   </Link>
-                </li>
-              );
-            })}
+              </li>
+            ))}
           </ul>
 
           <div className="mt-4 text-xs text-slate-500 dark:text-slate-400">
-            MVP note: sample data only. Replace with real, source-backed entries before launch.
+            Data note: this build reads from Postgres (seeded with a small, source-backed starter set).
           </div>
         </section>
 
