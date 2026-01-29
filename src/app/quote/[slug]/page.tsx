@@ -1,12 +1,47 @@
 export const dynamic = 'force-dynamic';
 
+import type { Metadata } from 'next';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { SiteFooter } from '@/components/SiteFooter';
 import { SiteHeader } from '@/components/SiteHeader';
-import { getQuoteBySlug, getRelatedQuotes, getTopics } from '@/lib/data';
+import { getPersonBySlug, getQuoteBySlug, getRelatedQuotes, getTopics } from '@/lib/data';
 
 type Props = { params: Promise<{ slug: string }> };
+
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
+  const { slug } = await params;
+  const q = await getQuoteBySlug(slug);
+  if (!q) return { title: 'Quote not found | QuoteTimeline' };
+
+  const base = process.env.NEXT_PUBLIC_SITE_URL ?? 'http://localhost:3000';
+  const url = `${base}/quote/${q.slug}`;
+
+  const person = await getPersonBySlug(q.personSlug);
+  const personName = person?.name ?? q.personSlug;
+
+  const title = `“${q.text}” — ${personName} | QuoteTimeline`;
+  const description = q.context
+    ? q.context
+    : `A sourced quote from ${personName}${q.source.publisher ? ` (${q.source.publisher})` : ''}.`;
+
+  return {
+    title,
+    description,
+    alternates: { canonical: url },
+    openGraph: {
+      title,
+      description,
+      url,
+      type: 'article',
+    },
+    twitter: {
+      card: 'summary',
+      title,
+      description,
+    },
+  };
+}
 
 export default async function QuotePage({ params }: Props) {
   const { slug } = await params;

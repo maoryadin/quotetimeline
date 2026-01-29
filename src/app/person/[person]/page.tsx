@@ -1,5 +1,6 @@
 export const dynamic = 'force-dynamic';
 
+import type { Metadata } from 'next';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { SiteFooter } from '@/components/SiteFooter';
@@ -7,6 +8,26 @@ import { SiteHeader } from '@/components/SiteHeader';
 import { getPersonBySlug, getQuotesByPerson, getTopics } from '@/lib/data';
 
 type Props = { params: Promise<{ person: string }> };
+
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
+  const { person } = await params;
+  const p = await getPersonBySlug(person);
+  if (!p) return { title: 'Person not found | QuoteTimeline' };
+
+  const base = process.env.NEXT_PUBLIC_SITE_URL ?? 'http://localhost:3000';
+  const url = `${base}/person/${p.slug}`;
+
+  const title = `${p.name} quotes | QuoteTimeline`;
+  const description = p.description ?? `A timeline-style index of sourced quotes by ${p.name}.`;
+
+  return {
+    title,
+    description,
+    alternates: { canonical: url },
+    openGraph: { title, description, url, type: 'profile' },
+    twitter: { card: 'summary', title, description },
+  };
+}
 
 export default async function PersonPage({ params }: Props) {
   const { person } = await params;
