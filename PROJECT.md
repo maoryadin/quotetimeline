@@ -34,6 +34,9 @@ Goal: scalable SEO traffic (quote pages + topic timelines) and ad monetization.
 - Disclaimer is present in UI: **not affiliated / not endorsed**.
 - Avoid official logos/branding; always link to primary sources.
 
+## Backlog
+See `BACKLOG.md` for an ordered, maintained backlog.
+
 ## Immediate TODO (highest ROI)
 ### 1) Real data ingestion (SEO engine)
 - Pick a first source (transcripts/official speeches/interviews).
