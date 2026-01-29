@@ -1,21 +1,19 @@
+export const dynamic = 'force-dynamic';
+
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { SiteFooter } from '@/components/SiteFooter';
 import { SiteHeader } from '@/components/SiteHeader';
-import { getQuoteBySlug, slugifyQuote, QUOTES, TOPICS } from '@/lib/sample-data';
+import { getQuoteBySlug, getRelatedQuotes, getTopics } from '@/lib/data';
 
 type Props = { params: Promise<{ slug: string }> };
 
 export default async function QuotePage({ params }: Props) {
   const { slug } = await params;
-  const q = getQuoteBySlug(slug);
+  const q = await getQuoteBySlug(slug);
   if (!q) return notFound();
 
-  const related = QUOTES.filter(
-    (x) => x.id !== q.id && (x.personSlug === q.personSlug || x.topics.some((t) => q.topics.includes(t)))
-  )
-    .sort((a, b) => (a.date < b.date ? 1 : -1))
-    .slice(0, 8);
+  const [related, topics] = await Promise.all([getRelatedQuotes(slug, 8), getTopics()]);
 
   return (
     <>
@@ -67,7 +65,7 @@ export default async function QuotePage({ params }: Props) {
             <div className="text-xs font-medium uppercase tracking-wide text-slate-500 dark:text-slate-400">Topics</div>
             <div className="mt-3 flex flex-wrap gap-2">
               {q.topics.map((tSlug) => {
-                const t = TOPICS.find((x) => x.slug === tSlug);
+                const t = topics.find((x) => x.slug === tSlug);
                 return (
                   <Link
                     key={tSlug}
@@ -85,23 +83,20 @@ export default async function QuotePage({ params }: Props) {
         <section className="mt-10">
           <h2 className="text-lg font-semibold">Related</h2>
           <ul className="mt-4 grid grid-cols-1 gap-3">
-            {related.map((r) => {
-              const rSlug = slugifyQuote(r.text, r.date);
-              return (
-                <li
-                  key={r.id}
-                  className="rounded-2xl border border-slate-200/70 bg-white/60 p-5 shadow-sm hover:bg-white dark:border-white/10 dark:bg-black/20"
-                >
-                  <Link href={`/quote/${rSlug}`} className="block">
+            {related.map((r) => (
+              <li
+                key={r.id}
+                className="rounded-2xl border border-slate-200/70 bg-white/60 p-5 shadow-sm hover:bg-white dark:border-white/10 dark:bg-black/20"
+              >
+                <Link href={`/quote/${r.slug}`} className="block">
                     <div className="flex items-baseline justify-between gap-3">
                       <div className="text-xs text-slate-500 dark:text-slate-400">{r.date}</div>
                       <div className="text-xs text-slate-500 dark:text-slate-400">{r.source.publisher ?? 'Source'}</div>
                     </div>
                     <div className="mt-2 text-base leading-snug text-slate-900 dark:text-slate-100">“{r.text}”</div>
                   </Link>
-                </li>
-              );
-            })}
+              </li>
+            ))}
           </ul>
         </section>
 

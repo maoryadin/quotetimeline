@@ -1,16 +1,13 @@
+export const dynamic = 'force-dynamic';
+
 import Link from 'next/link';
 import { SiteFooter } from '@/components/SiteFooter';
 import { SiteHeader } from '@/components/SiteHeader';
-import { QUOTES, TOPICS } from '@/lib/sample-data';
+import { getTrendingTopics } from '@/lib/data';
 
-export default function TrendingPage() {
-  // MVP: “trending” = topic frequency across all quotes.
-  const counts = new Map<string, number>();
-  for (const q of QUOTES) for (const t of q.topics) counts.set(t, (counts.get(t) ?? 0) + 1);
-
-  const ranked = [...counts.entries()]
-    .map(([slug, n]) => ({ slug, n, name: TOPICS.find((t) => t.slug === slug)?.name ?? slug }))
-    .sort((a, b) => b.n - a.n);
+export default async function TrendingPage() {
+  // v1 “trending” = topic frequency across indexed quotes.
+  const ranked = await getTrendingTopics();
 
   return (
     <>
@@ -27,9 +24,7 @@ export default function TrendingPage() {
 
         <header className="mt-6 rounded-3xl border border-slate-200/70 bg-white/60 p-8 shadow-sm dark:border-white/10 dark:bg-black/20">
           <h1 className="text-3xl font-semibold tracking-tight sm:text-4xl">Trending</h1>
-          <p className="mt-3 max-w-2xl text-slate-600 dark:text-slate-300">
-            A lightweight snapshot based on currently indexed quotes (sample data).
-          </p>
+          <p className="mt-3 max-w-2xl text-slate-600 dark:text-slate-300">A lightweight snapshot based on currently indexed quotes.</p>
         </header>
 
         <section className="mt-10">
