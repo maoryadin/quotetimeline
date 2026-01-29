@@ -34,14 +34,35 @@ npm run dev
 
 Open http://localhost:3000
 
-## Vercel
+## Vercel Postgres
 
-- Add a Postgres database (Vercel Postgres / Neon / Supabase)
-- Set `DATABASE_URL` in Vercel Project → Settings → Environment Variables
-- Run these as **Build Commands** or as a one-time step in the Vercel DB console:
-  - `npm run prisma:generate`
+### Create + link the database
+1. In Vercel, open your project.
+2. Go to **Storage** → **Create Database** → **Postgres**.
+3. Create the DB and **connect/link** it to this project (Vercel will offer this during creation).
+
+### Environment variables
+Vercel Postgres typically injects env vars like `POSTGRES_URL`, `POSTGRES_PRISMA_URL`, etc.
+
+This app expects **`DATABASE_URL`**.
+
+Recommended mapping:
+- Set `DATABASE_URL` = `POSTGRES_PRISMA_URL` (best for Prisma)
+
+You can set it in **Project → Settings → Environment Variables** (Preview + Production).
+
+### Migrations + seed
+- One-time (or whenever schema changes):
   - `npm run prisma:deploy`
+- One-time to load the starter dataset:
   - `npm run db:seed`
+
+Where to run them:
+- Locally (with `DATABASE_URL` pointed at the Vercel Postgres URL), or
+- In Vercel (e.g. via a one-off CI job).
+
+Notes:
+- Don’t run `db:seed` on every deploy unless you intentionally want idempotent upserts each time.
 
 ## Notes
 
