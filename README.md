@@ -56,6 +56,8 @@ You can set it in **Project → Settings → Environment Variables** (Preview + 
   - `npm run prisma:deploy`
 - One-time to load the starter dataset:
   - `npm run db:seed`
+- Convenience (deploy + seed):
+  - `npm run db:setup`
 
 Where to run them:
 - Locally (with `DATABASE_URL` pointed at the Vercel Postgres URL), or
@@ -67,6 +69,6 @@ Notes:
 ## Notes
 
 - The app now reads from Postgres (Prisma).
-- The seed imports a small, source-backed starter set from U.S. National Archives presidential inaugural address transcripts.
+- The seed imports a small, source-backed starter set from public-domain U.S. presidential inaugural address transcripts (Project Gutenberg #925).
 - Before publishing at scale, review sources/robots, add rate limiting, and store per-quote deep links (not just the index page).
 

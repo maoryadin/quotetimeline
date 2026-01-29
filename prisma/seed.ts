@@ -262,13 +262,11 @@ async function main() {
   }
 
   const quoteCount = await prisma.quote.count();
-  // eslint-disable-next-line no-console
   console.log(`Seeded quotes: ${quoteCount}`);
 }
 
 main()
   .catch((e) => {
-    // eslint-disable-next-line no-console
     console.error(e);
     process.exit(1);
   })

@@ -50,3 +50,4 @@ TOOLS.md
 HEARTBEAT.md
 MEMORY.md
 memory/
+.env*.local
