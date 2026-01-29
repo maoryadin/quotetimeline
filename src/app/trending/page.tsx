@@ -1,4 +1,6 @@
 import Link from 'next/link';
+import { SiteFooter } from '@/components/SiteFooter';
+import { SiteHeader } from '@/components/SiteHeader';
 import { QUOTES, TOPICS } from '@/lib/sample-data';
 
 export default function TrendingPage() {
@@ -11,35 +13,48 @@ export default function TrendingPage() {
     .sort((a, b) => b.n - a.n);
 
   return (
-    <main className="mx-auto max-w-3xl px-6 py-10">
-      <Link href="/" className="text-sm text-slate-600 hover:underline">
-        ← Home
-      </Link>
+    <>
+      <SiteHeader />
+      <main className="mx-auto max-w-5xl px-6 py-10">
+        <div className="flex items-center justify-between gap-3">
+          <Link href="/" className="text-sm text-slate-600 hover:underline dark:text-slate-300">
+            ← Home
+          </Link>
+          <Link href="/search" className="text-sm text-slate-600 hover:underline dark:text-slate-300">
+            Search →
+          </Link>
+        </div>
 
-      <header className="mt-4 space-y-2">
-        <h1 className="text-3xl font-semibold tracking-tight">Trending</h1>
-        <p className="text-slate-600">A lightweight snapshot based on currently indexed quotes (sample data).</p>
-      </header>
+        <header className="mt-6 rounded-3xl border border-slate-200/70 bg-white/60 p-8 shadow-sm dark:border-white/10 dark:bg-black/20">
+          <h1 className="text-3xl font-semibold tracking-tight sm:text-4xl">Trending</h1>
+          <p className="mt-3 max-w-2xl text-slate-600 dark:text-slate-300">
+            A lightweight snapshot based on currently indexed quotes (sample data).
+          </p>
+        </header>
 
-      <section className="mt-8">
-        <ul className="space-y-3">
-          {ranked.map((x) => (
-            <li key={x.slug} className="rounded-lg border p-4">
-              <div className="flex items-center justify-between">
-                <Link className="font-medium" href={`/topic/${x.slug}`}>
-                  {x.name}
-                </Link>
-                <div className="text-sm text-slate-600">{x.n}</div>
-              </div>
-              <div className="text-xs text-slate-500">/topic/{x.slug}</div>
-            </li>
-          ))}
-        </ul>
-      </section>
+        <section className="mt-10">
+          <ul className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+            {ranked.map((x) => (
+              <li
+                key={x.slug}
+                className="rounded-2xl border border-slate-200/70 bg-white/60 p-5 shadow-sm hover:bg-white dark:border-white/10 dark:bg-black/20"
+              >
+                <div className="flex items-center justify-between gap-3">
+                  <Link className="text-base font-semibold text-slate-900 hover:underline dark:text-slate-100" href={`/topic/${x.slug}`}>
+                    {x.name}
+                  </Link>
+                  <div className="rounded-full bg-slate-900 px-2.5 py-1 text-xs font-medium text-white dark:bg-white dark:text-slate-900">
+                    {x.n}
+                  </div>
+                </div>
+                <div className="mt-3 text-xs text-slate-500 dark:text-slate-400">/topic/{x.slug}</div>
+              </li>
+            ))}
+          </ul>
+        </section>
 
-      <footer className="mt-10 text-xs text-slate-500">
-        Not affiliated with or endorsed by any person or organization.
-      </footer>
-    </main>
+        <SiteFooter />
+      </main>
+    </>
   );
 }
