@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { SITE } from '@/lib/sample-data';
+import { SITE } from '@/lib/data';
 
 export function SiteHeader() {
   return (
@@ -21,10 +21,10 @@ export function SiteHeader() {
             Trending
           </Link>
           <Link
-            href="/person/donald-trump"
+            href="/people"
             className="rounded-lg px-3 py-2 text-slate-700 hover:bg-slate-100 dark:text-slate-200 dark:hover:bg-white/10"
           >
-            Trump
+            People
           </Link>
           <Link
             href="/search"
