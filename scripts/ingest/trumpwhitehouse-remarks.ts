@@ -260,13 +260,11 @@ async function main() {
   const res = await ingest({ maxPosts, sleepMs });
   const quoteCount = await prisma.quote.count({ where: { person: { slug: 'donald-trump' } } });
 
-  // eslint-disable-next-line no-console
   console.log(`Ingested posts: ${res.postsProcessed}. Total Trump quotes now: ${quoteCount}`);
 }
 
 main()
   .catch((e) => {
-    // eslint-disable-next-line no-console
     console.error(e);
     process.exit(1);
   })
