@@ -84,6 +84,17 @@ export const getTopics = cache(async () => {
   });
 });
 
+export const getTopicsWithCounts = cache(async () => {
+  return prisma.topic.findMany({
+    select: {
+      slug: true,
+      name: true,
+      _count: { select: { quotes: true } },
+    },
+    orderBy: { name: 'asc' },
+  });
+});
+
 export const getTopicBySlug = cache(async (slug: string) => {
   return prisma.topic.findUnique({ where: { slug } });
 });
