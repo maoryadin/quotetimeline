@@ -15,10 +15,10 @@ export function SiteHeader() {
 
         <nav className="flex items-center gap-2 text-sm">
           <Link
-            href="/people"
+            href="/"
             className="rounded-lg px-3 py-2 text-slate-700 hover:bg-slate-100 dark:text-slate-200 dark:hover:bg-white/10"
           >
-            People
+            Trump timeline
           </Link>
           <Link
             href="/topics"
