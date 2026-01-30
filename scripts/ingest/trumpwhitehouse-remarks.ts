@@ -1,4 +1,5 @@
 import { PrismaClient, SourceType } from '@prisma/client';
+import { createHash } from 'node:crypto';
 
 const prisma = new PrismaClient();
 
@@ -59,14 +60,18 @@ function sentenceSplit(text: string) {
   return [...new Set(good)];
 }
 
-function slugifyQuote(text: string, dateISO: string) {
+function stableQuoteSlug(text: string, dateISO: string, sourceUrl: string) {
   const base = text
     .toLowerCase()
     .replace(/[^a-z0-9\s-]/g, '')
     .trim()
     .replace(/\s+/g, '-')
     .slice(0, 60);
-  return `${base}-${dateISO}`;
+
+  // Uniqueness + stability across sources even when the readable prefix collides.
+  // Including sourceUrl prevents overwriting the same sentence that appears in multiple sources.
+  const hash = createHash('sha1').update(`${text}|${dateISO}|${sourceUrl}`).digest('hex').slice(0, 8);
+  return `${base}-${dateISO}-${hash}`;
 }
 
 function assertValidHttpUrl(url: string) {
@@ -77,25 +82,6 @@ function assertValidHttpUrl(url: string) {
     throw new Error(`Invalid URL: ${url}`);
   }
   if (u.protocol !== 'http:' && u.protocol !== 'https:') throw new Error(`Invalid URL protocol: ${url}`);
-}
-
-async function resolveUniqueQuoteSlug(baseSlug: string, text: string) {
-  let slug = baseSlug;
-  let n = 2;
-
-  while (true) {
-    const existing = await prisma.quote.findUnique({ where: { slug }, select: { text: true } });
-
-    // If empty, we can safely create with this slug.
-    if (!existing) return slug;
-
-    // Idempotency: if the same content is already stored under this slug, re-use it.
-    if (existing.text === text) return slug;
-
-    // Collision: append a numeric suffix.
-    slug = `${baseSlug}-${n}`;
-    n += 1;
-  }
 }
 
 async function fetchHtml(url: string) {
@@ -255,8 +241,7 @@ async function ingest(opts: IngestOptions) {
     const sentences = sentenceSplit(body).slice(0, 30);
 
     for (const sentence of sentences) {
-      const baseSlug = slugifyQuote(sentence, dateISO);
-      const slug = await resolveUniqueQuoteSlug(baseSlug, sentence);
+      const slug = stableQuoteSlug(sentence, dateISO, url);
 
       await prisma.quote.upsert({
         where: { slug },
