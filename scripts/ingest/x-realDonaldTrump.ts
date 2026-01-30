@@ -1,6 +1,7 @@
 import { execFileSync } from 'node:child_process';
 import { PrismaClient, SourceType } from '@prisma/client';
 import { assertValidHttpUrl, toISODate } from './lib/validators';
+import { ensureQuoteTopicLinks } from './lib/syncTopics';
 
 const prisma = new PrismaClient();
 
@@ -183,7 +184,7 @@ async function main() {
       }
     }
 
-    await prisma.quote.upsert({
+    const quote = await prisma.quote.upsert({
       where: { slug },
       create: {
         slug,
@@ -192,9 +193,6 @@ async function main() {
         context: null,
         personId: person.id,
         sourceId: source.id,
-        topics: {
-          create: topics.map((topic) => ({ topic: { connect: { slug: topic.slug } } })),
-        },
       },
       update: {
         text: t.text.trim(),
@@ -203,6 +201,11 @@ async function main() {
         personId: person.id,
         sourceId: source.id,
       },
+    });
+
+    await ensureQuoteTopicLinks(prisma, {
+      quoteId: quote.id,
+      topicSlugs: topics.map((topic) => topic.slug),
     });
 
     kept += 1;

@@ -1,6 +1,7 @@
 import { PrismaClient, SourceType } from '@prisma/client';
 import { assertValidHttpUrl, toISODate } from './lib/validators';
 import { ensureNonCollidingSlug, stableQuoteSlug } from './lib/quoteSlug';
+import { ensureQuoteTopicLinks } from './lib/syncTopics';
 
 const prisma = new PrismaClient();
 
@@ -227,7 +228,7 @@ async function ingest(opts: IngestOptions) {
         sourceId: source.id,
       });
 
-      await prisma.quote.upsert({
+      const quote = await prisma.quote.upsert({
         where: { slug },
         create: {
           slug,
@@ -236,9 +237,6 @@ async function ingest(opts: IngestOptions) {
           context: `Excerpt from: ${title}.`,
           personId: person.id,
           sourceId: source.id,
-          topics: {
-            create: topics.map((t) => ({ topic: { connect: { slug: t.slug } } })),
-          },
         },
         update: {
           // Safety: only update mutable fields. Identity is enforced by slug + ensureNonCollidingSlug().
@@ -248,6 +246,11 @@ async function ingest(opts: IngestOptions) {
           personId: person.id,
           sourceId: source.id,
         },
+      });
+
+      await ensureQuoteTopicLinks(prisma, {
+        quoteId: quote.id,
+        topicSlugs: topics.map((t) => t.slug),
       });
     }
 
