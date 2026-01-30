@@ -78,3 +78,18 @@ model QuoteTopic {
   @@id([quoteId, topicId])
   @@index([topicId])
 }
+
+model MarketDaily {
+  id     String   @id @default(cuid())
+  symbol String
+  date   DateTime
+  close  Float
+
+  provider String @default("stooq")
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([symbol, date])
+  @@index([symbol, date])
+}
