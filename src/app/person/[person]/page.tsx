@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { SiteFooter } from '@/components/SiteFooter';
 import { SiteHeader } from '@/components/SiteHeader';
-import { getPersonBySlug, getQuoteCountByPerson, getQuotesByPerson, getTopics } from '@/lib/data';
+import { getPersonBySlug, getQuoteCountByPerson, getQuotesByPerson, getTopTopicsByPerson } from '@/lib/data';
 
 type Props = {
   params: Promise<{ person: string }>;
@@ -48,14 +48,11 @@ export default async function PersonPage({ params, searchParams }: Props) {
 
   const pageSize = 50;
 
-  const [quotes, topics, totalQuotes] = await Promise.all([
+  const [quotes, topTopics, totalQuotes] = await Promise.all([
     getQuotesByPerson(person, { page, pageSize }),
-    getTopics(),
+    getTopTopicsByPerson(person, 12),
     getQuoteCountByPerson(person),
   ]);
-
-  const topicCounts = new Map<string, number>();
-  for (const q of quotes) for (const t of q.topics) topicCounts.set(t, (topicCounts.get(t) ?? 0) + 1);
 
   return (
     <>
@@ -78,20 +75,22 @@ export default async function PersonPage({ params, searchParams }: Props) {
         <section className="mt-10">
           <h2 className="text-lg font-semibold">Top topics</h2>
           <ul className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2">
-            {topics.map((t) => (
+            {topTopics.map((t) => (
               <li
                 key={t.slug}
                 className="rounded-2xl border border-slate-200/70 bg-white/60 p-5 shadow-sm hover:bg-white dark:border-white/10 dark:bg-black/20"
               >
                 <Link className="block" href={`/topic/${t.slug}`}>
                   <div className="text-base font-semibold text-slate-900 dark:text-slate-100">{t.name}</div>
-                  <div className="mt-2 text-xs text-slate-500 dark:text-slate-400">
-                    {topicCounts.get(t.slug) ?? 0} quotes
-                  </div>
+                  <div className="mt-2 text-xs text-slate-500 dark:text-slate-400">{t.n} quotes</div>
                 </Link>
               </li>
             ))}
           </ul>
+
+          {!topTopics.length ? (
+            <div className="mt-4 text-sm text-slate-600 dark:text-slate-300">No topics yet.</div>
+          ) : null}
         </section>
 
         <section className="mt-10">

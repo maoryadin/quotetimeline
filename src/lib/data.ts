@@ -84,6 +84,33 @@ export const getTopics = cache(async () => {
   });
 });
 
+export const getTopTopicsByPerson = cache(async (personSlug: string, limit = 12) => {
+  const grouped = await prisma.quoteTopic.groupBy({
+    by: ['topicId'],
+    where: { quote: { person: { slug: personSlug } } },
+    _count: { topicId: true },
+    orderBy: { _count: { topicId: 'desc' } },
+    take: limit,
+  });
+
+  const topicIds = grouped.map((g) => g.topicId);
+  if (!topicIds.length) return [] as Array<{ slug: string; name: string; n: number }>;
+
+  const topics = await prisma.topic.findMany({
+    where: { id: { in: topicIds } },
+    select: { id: true, slug: true, name: true },
+  });
+  const byId = new Map(topics.map((t) => [t.id, t] as const));
+
+  return grouped
+    .map((g) => {
+      const t = byId.get(g.topicId);
+      if (!t) return null;
+      return { slug: t.slug, name: t.name, n: g._count.topicId };
+    })
+    .filter((x): x is { slug: string; name: string; n: number } => Boolean(x));
+});
+
 export const getTopicsWithCounts = cache(async () => {
   return prisma.topic.findMany({
     select: {
