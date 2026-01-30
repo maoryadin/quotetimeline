@@ -246,15 +246,37 @@ export const searchQuotes = cache(async (query: string) => {
   const q = query.trim();
   if (!q) return [];
 
+  // Tokenize to make multi-word searches useful.
+  // Example: "border wall" should match even if the words are separated.
+  // We AND terms together, but each term can match in any supported field.
+  const terms = q
+    .split(/\s+/)
+    .map((t) => t.trim())
+    .filter(Boolean)
+    .slice(0, 6);
+
+  const where = terms.length
+    ? {
+        AND: terms.map((term) => ({
+          OR: [
+            { text: { contains: term, mode: 'insensitive' as const } },
+            { context: { contains: term, mode: 'insensitive' as const } },
+            { source: { title: { contains: term, mode: 'insensitive' as const } } },
+            { person: { name: { contains: term, mode: 'insensitive' as const } } },
+          ],
+        })),
+      }
+    : {
+        OR: [
+          { text: { contains: q, mode: 'insensitive' as const } },
+          { context: { contains: q, mode: 'insensitive' as const } },
+          { source: { title: { contains: q, mode: 'insensitive' as const } } },
+          { person: { name: { contains: q, mode: 'insensitive' as const } } },
+        ],
+      };
+
   const quotes = await prisma.quote.findMany({
-    where: {
-      OR: [
-        { text: { contains: q, mode: 'insensitive' } },
-        { context: { contains: q, mode: 'insensitive' } },
-        { source: { title: { contains: q, mode: 'insensitive' } } },
-        { person: { name: { contains: q, mode: 'insensitive' } } },
-      ],
-    },
+    where,
     take: 100,
     orderBy: { date: 'desc' },
     include: {
