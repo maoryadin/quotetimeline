@@ -1,5 +1,6 @@
 import { execFileSync } from 'node:child_process';
 import { PrismaClient, SourceType } from '@prisma/client';
+import { assertValidHttpUrl, toISODate } from './lib/validators';
 
 const prisma = new PrismaClient();
 
@@ -19,22 +20,6 @@ function getEnv(name: string) {
 
 function tweetUrl(username: string, id: string) {
   return `https://x.com/${username}/status/${id}`;
-}
-
-function assertValidHttpUrl(url: string) {
-  let u: URL;
-  try {
-    u = new URL(url);
-  } catch {
-    throw new Error(`Invalid URL: ${url}`);
-  }
-  if (u.protocol !== 'http:' && u.protocol !== 'https:') throw new Error(`Invalid URL protocol: ${url}`);
-}
-
-function toISODate(createdAt: string) {
-  const d = new Date(createdAt);
-  if (Number.isNaN(d.getTime())) throw new Error(`Invalid tweet createdAt: ${createdAt}`);
-  return d.toISOString().slice(0, 10);
 }
 
 function uniq<T>(arr: T[]) {
@@ -182,8 +167,21 @@ async function main() {
     });
 
     // One tweet = one quote.
-    // Slug is stable and based on tweet id (no collisions).
+    // Slug is stable and based on tweet id (no collisions). Still, fail fast if it would overwrite a different record.
     const slug = `x-${username}-${t.id}`;
+
+    const existing = await prisma.quote.findUnique({ where: { slug } });
+    if (existing) {
+      const sameIdentity =
+        existing.sourceId === source.id &&
+        existing.personId === person.id &&
+        existing.text === t.text.trim() &&
+        existing.date.toISOString().slice(0, 10) === dateISO;
+
+      if (!sameIdentity) {
+        throw new Error(`Refusing to overwrite existing quote with same slug: ${slug} (${url})`);
+      }
+    }
 
     await prisma.quote.upsert({
       where: { slug },

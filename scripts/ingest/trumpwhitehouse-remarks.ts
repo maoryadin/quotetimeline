@@ -1,5 +1,6 @@
 import { PrismaClient, SourceType } from '@prisma/client';
-import { createHash } from 'node:crypto';
+import { assertValidHttpUrl, toISODate } from './lib/validators';
+import { ensureNonCollidingSlug, stableQuoteSlug } from './lib/quoteSlug';
 
 const prisma = new PrismaClient();
 
@@ -60,71 +61,6 @@ function sentenceSplit(text: string) {
   return [...new Set(good)];
 }
 
-function stableQuoteSlug(text: string, dateISO: string, sourceUrl: string, hashLen = 8) {
-  const base = text
-    .toLowerCase()
-    .replace(/[^a-z0-9\s-]/g, '')
-    .trim()
-    .replace(/\s+/g, '-')
-    .slice(0, 60);
-
-  // Uniqueness + stability across sources even when the readable prefix collides.
-  // Including sourceUrl prevents overwriting the same sentence that appears in multiple sources.
-  const hash = createHash('sha1').update(`${text}|${dateISO}|${sourceUrl}`).digest('hex').slice(0, hashLen);
-  return `${base}-${dateISO}-${hash}`;
-}
-
-async function ensureNonCollidingSlug(input: {
-  proposed: string;
-  text: string;
-  dateISO: string;
-  sourceUrl: string;
-  personId: string;
-  sourceId: string;
-}) {
-  const existing = await prisma.quote.findUnique({ where: { slug: input.proposed } });
-  if (!existing) return input.proposed;
-
-  const sameIdentity =
-    existing.text === input.text &&
-    existing.personId === input.personId &&
-    existing.sourceId === input.sourceId &&
-    existing.date.toISOString().slice(0, 10) === input.dateISO;
-
-  // If it's the same quote (rerun ingest), keep the same slug.
-  if (sameIdentity) return input.proposed;
-
-  // Collision fallback: keep slugs stable by deterministically using a longer hash.
-  const fallback = stableQuoteSlug(input.text, input.dateISO, input.sourceUrl, 12);
-  if (fallback === input.proposed) {
-    throw new Error(`Slug collision detected and fallback did not change: ${input.proposed}`);
-  }
-
-  const existingFallback = await prisma.quote.findUnique({ where: { slug: fallback } });
-  if (!existingFallback) return fallback;
-
-  const sameFallbackIdentity =
-    existingFallback.text === input.text &&
-    existingFallback.personId === input.personId &&
-    existingFallback.sourceId === input.sourceId &&
-    existingFallback.date.toISOString().slice(0, 10) === input.dateISO;
-
-  if (sameFallbackIdentity) return fallback;
-
-  throw new Error(
-    `Unresolvable slug collision for ${input.sourceUrl} (${input.dateISO}). Proposed: ${input.proposed}, fallback: ${fallback}`
-  );
-}
-
-function assertValidHttpUrl(url: string) {
-  let u: URL;
-  try {
-    u = new URL(url);
-  } catch {
-    throw new Error(`Invalid URL: ${url}`);
-  }
-  if (u.protocol !== 'http:' && u.protocol !== 'https:') throw new Error(`Invalid URL protocol: ${url}`);
-}
 
 async function fetchHtml(url: string) {
   const res = await fetch(url, {
@@ -242,9 +178,7 @@ async function ingest(opts: IngestOptions) {
       continue;
     }
 
-    const date = new Date(published);
-    if (Number.isNaN(date.getTime())) throw new Error(`Invalid published date: ${published} (${url})`);
-    const dateISO = date.toISOString().slice(0, 10);
+    const dateISO = toISODate(published, `published date (${url})`);
 
     const tags = extractTags(html);
     const topics = tags
@@ -284,7 +218,7 @@ async function ingest(opts: IngestOptions) {
 
     for (const sentence of sentences) {
       const proposed = stableQuoteSlug(sentence, dateISO, url);
-      const slug = await ensureNonCollidingSlug({
+      const slug = await ensureNonCollidingSlug(prisma, {
         proposed,
         text: sentence,
         dateISO,
