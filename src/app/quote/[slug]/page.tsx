@@ -48,11 +48,43 @@ export default async function QuotePage({ params }: Props) {
   const q = await getQuoteBySlug(slug);
   if (!q) return notFound();
 
-  const [related, topics] = await Promise.all([getRelatedQuotes(slug, 8), getTopics()]);
+  const [related, topics, person] = await Promise.all([
+    getRelatedQuotes(slug, 8),
+    getTopics(),
+    getPersonBySlug(q.personSlug),
+  ]);
+
+  const base = process.env.NEXT_PUBLIC_SITE_URL ?? 'http://localhost:3000';
+  const canonicalUrl = `${base}/quote/${q.slug}`;
+
+  // Minimal JSON-LD to help search engines understand the entity.
+  const jsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'Quotation',
+    '@id': canonicalUrl,
+    url: canonicalUrl,
+    text: q.text,
+    datePublished: q.date,
+    author: {
+      '@type': 'Person',
+      name: person?.name ?? q.personSlug,
+      url: `${base}/person/${q.personSlug}`,
+    },
+    isBasedOn: q.source.url,
+    about: q.topics.map((tSlug) => {
+      const t = topics.find((x) => x.slug === tSlug);
+      return {
+        '@type': 'Thing',
+        name: t?.name ?? tSlug,
+        url: `${base}/topic/${tSlug}`,
+      };
+    }),
+  };
 
   return (
     <>
       <SiteHeader />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
       <main className="mx-auto max-w-5xl px-6 py-10">
         <div className="flex items-center justify-between gap-3">
           <Link href={`/person/${q.personSlug}`} className="text-sm text-slate-600 hover:underline dark:text-slate-300">
