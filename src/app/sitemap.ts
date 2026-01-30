@@ -15,7 +15,6 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const urls: MetadataRoute.Sitemap = [
     { url: `${base}/`, lastModified: new Date() },
     { url: `${base}/trending`, lastModified: new Date() },
-    { url: `${base}/search`, lastModified: new Date() },
   ];
 
   for (const p of people) urls.push({ url: `${base}/person/${p.slug}`, lastModified: new Date() });

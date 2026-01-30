@@ -25,7 +25,9 @@ export async function generateMetadata({ searchParams }: Props): Promise<Metadat
     title,
     description,
     alternates: { canonical: url },
-    robots: query ? { index: false, follow: true } : { index: true, follow: true },
+    // Search pages create infinite, low-signal URLs. Keep them crawlable (follow links)
+    // but don't index them.
+    robots: { index: false, follow: true },
     openGraph: { title, description, url, type: 'website' },
     twitter: { card: 'summary', title, description },
   };
