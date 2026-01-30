@@ -1,120 +1,108 @@
-export const dynamic = 'force-dynamic';
-
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
 import { fetchStooqDailyCloses } from '@/lib/market/stooq';
 
-function isISODate(s: string) {
-  return /^\d{4}-\d{2}-\d{2}$/.test(s);
+function parseISODate(s: string | null): Date | null {
+  if (!s) return null;
+  // Expect YYYY-MM-DD
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(s)) return null;
+  const d = new Date(`${s}T00:00:00Z`);
+  if (Number.isNaN(d.getTime())) return null;
+  return d;
 }
 
-function startOfDayUtc(isoDate: string) {
-  return new Date(`${isoDate}T00:00:00.000Z`);
+function toISO(d: Date) {
+  return d.toISOString().slice(0, 10);
 }
 
-function addDaysUtc(d: Date, days: number) {
+function addDays(d: Date, days: number) {
   const x = new Date(d);
   x.setUTCDate(x.getUTCDate() + days);
   return x;
 }
 
-function toISODate(d: Date) {
-  return d.toISOString().slice(0, 10);
-}
+const ALLOWED_SYMBOLS = new Set(['spy.us', 'vxx.us']);
 
-function clampInt(v: string | null, min: number, max: number, fallback: number) {
-  const n = Number(v);
-  if (!Number.isFinite(n)) return fallback;
-  return Math.max(min, Math.min(max, Math.floor(n)));
-}
+export async function GET(req: Request) {
+  const url = new URL(req.url);
 
-type Point = { date: string; close: number };
+  const symbol = (url.searchParams.get('symbol') ?? '').toLowerCase();
+  if (!ALLOWED_SYMBOLS.has(symbol)) {
+    return NextResponse.json({ error: 'Unsupported symbol' }, { status: 400 });
+  }
 
-async function ensureMarketWindow(symbol: string, fromISO: string, toISO: string): Promise<Point[]> {
-  const from = startOfDayUtc(fromISO);
-  const to = startOfDayUtc(toISO);
+  const anchor = parseISODate(url.searchParams.get('anchor'));
+  if (!anchor) {
+    return NextResponse.json({ error: 'Invalid anchor date' }, { status: 400 });
+  }
 
-  const existing = await prisma.marketDaily.findMany({
-    where: {
-      symbol,
-      date: {
-        gte: from,
-        lte: to,
+  const daysParam = Number(url.searchParams.get('days') ?? '7');
+  const days = Number.isFinite(daysParam) ? Math.max(3, Math.min(31, Math.floor(daysParam))) : 7;
+
+  // Interpret "days" as a calendar window centered on the anchor.
+  const half = Math.floor(days / 2);
+  const start = addDays(anchor, -half);
+  const end = addDays(anchor, half);
+
+  async function readWindow() {
+    const rows = await prisma.marketDaily.findMany({
+      where: {
+        symbol,
+        date: {
+          gte: start,
+          lte: end,
+        },
       },
-    },
-    orderBy: { date: 'asc' },
-    select: { date: true, close: true },
-  });
+      orderBy: { date: 'asc' },
+      select: { date: true, close: true },
+    });
 
-  const have = new Set(existing.map((p) => toISODate(p.date)));
+    return rows.map((r) => ({ date: toISO(r.date), close: r.close }));
+  }
 
-  // Backfill only if we're missing points in the requested window.
-  // (Market days may be fewer than `days` due to weekends/holidays.)
-  if (!have.size) {
-    const fetched = await fetchStooqDailyCloses(symbol);
-    const inRange = fetched.filter((p) => p.date >= fromISO && p.date <= toISO);
+  let points = await readWindow();
 
-    if (inRange.length) {
+  // If we have fewer than 2 points (or nothing), refresh cache from the free provider.
+  // We also widen the import range a bit to handle weekends/holidays around the anchor.
+  if (points.length < 2) {
+    const importStart = addDays(start, -10);
+    const importEnd = addDays(end, 10);
+
+    const series = await fetchStooqDailyCloses(symbol);
+    const slice = series.filter((p) => {
+      const d = parseISODate(p.date);
+      if (!d) return false;
+      return d >= importStart && d <= importEnd;
+    });
+
+    if (slice.length) {
       await prisma.$transaction(
-        inRange.map((p) =>
+        slice.map((p) =>
           prisma.marketDaily.upsert({
-            where: { symbol_date: { symbol, date: startOfDayUtc(p.date) } },
-            create: { symbol, date: startOfDayUtc(p.date), close: p.close, provider: 'stooq' },
-            update: { close: p.close, provider: 'stooq' },
+            where: {
+              symbol_date: {
+                symbol,
+                date: new Date(`${p.date}T00:00:00Z`),
+              },
+            },
+            create: {
+              symbol,
+              date: new Date(`${p.date}T00:00:00Z`),
+              close: p.close,
+              provider: 'stooq',
+            },
+            update: {
+              close: p.close,
+              provider: 'stooq',
+            },
           }),
         ),
       );
     }
+
+    points = await readWindow();
   }
 
-  const final = await prisma.marketDaily.findMany({
-    where: {
-      symbol,
-      date: {
-        gte: from,
-        lte: to,
-      },
-    },
-    orderBy: { date: 'asc' },
-    select: { date: true, close: true },
-  });
-
-  return final.map((p) => ({ date: toISODate(p.date), close: p.close }));
-}
-
-export async function GET(req: Request) {
-  const { searchParams } = new URL(req.url);
-
-  const rawSymbol = (searchParams.get('symbol') ?? '').trim().toLowerCase();
-  const anchor = (searchParams.get('anchor') ?? '').trim();
-  const days = clampInt(searchParams.get('days'), 1, 31, 7);
-
-  if (!rawSymbol) {
-    return NextResponse.json({ error: 'missing symbol' }, { status: 400 });
-  }
-
-  // Keep a conservative allow-list for the MVP to avoid being a proxy.
-  const allowed = new Set(['spy.us', 'vxx.us']);
-  if (!allowed.has(rawSymbol)) {
-    return NextResponse.json({ error: 'unsupported symbol (MVP)' }, { status: 400 });
-  }
-
-  if (!anchor || !isISODate(anchor)) {
-    return NextResponse.json({ error: 'missing/invalid anchor (YYYY-MM-DD)' }, { status: 400 });
-  }
-
-  // Build a symmetric-ish window around the anchor date.
-  // Example: days=7 -> [-3, +3]
-  const half = Math.floor(days / 2);
-  const anchorDate = startOfDayUtc(anchor);
-  const fromISO = toISODate(addDaysUtc(anchorDate, -half));
-  const toISO = toISODate(addDaysUtc(anchorDate, half));
-
-  try {
-    const points = await ensureMarketWindow(rawSymbol, fromISO, toISO);
-    return NextResponse.json({ symbol: rawSymbol, points });
-  } catch (e) {
-    const message = e instanceof Error ? e.message : 'unknown error';
-    return NextResponse.json({ error: message }, { status: 500 });
-  }
+  // If still empty (e.g., provider down), return empty series; the client has a graceful fallback.
+  return NextResponse.json({ symbol, points });
 }
