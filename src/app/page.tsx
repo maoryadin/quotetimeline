@@ -18,9 +18,12 @@ type Props = {
   searchParams?: Promise<{ page?: string }>;
 };
 
-export async function generateMetadata(): Promise<Metadata> {
+export async function generateMetadata({ searchParams }: Props): Promise<Metadata> {
   const base = process.env.NEXT_PUBLIC_SITE_URL ?? 'http://localhost:3000';
-  const url = `${base}/`;
+  const sp = (await searchParams) ?? {};
+  const page = toPage(sp.page);
+
+  const canonical = page > 1 ? `${base}/?page=${page}` : `${base}/`;
 
   const title = 'Donald J. Trump timeline (sourced quotes) | QuoteTimeline';
   const description = 'A neutral, source-first timeline of verbatim public quotes by Donald J. Trump, with dates and primary sources.';
@@ -28,8 +31,9 @@ export async function generateMetadata(): Promise<Metadata> {
   return {
     title,
     description,
-    alternates: { canonical: url },
-    openGraph: { title, description, url, type: 'website' },
+    alternates: { canonical },
+    robots: page > 1 ? { index: false, follow: true } : undefined,
+    openGraph: { title, description, url: canonical, type: 'website' },
     twitter: { card: 'summary', title, description },
   };
 }

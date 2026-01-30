@@ -12,13 +12,16 @@ type Props = {
   searchParams?: Promise<{ page?: string }>;
 };
 
-export async function generateMetadata({ params }: Props): Promise<Metadata> {
+export async function generateMetadata({ params, searchParams }: Props): Promise<Metadata> {
   const { person } = await params;
+  const sp = (await searchParams) ?? {};
+  const page = toPage(sp.page);
+
   const p = await getPersonBySlug(person);
   if (!p) return { title: 'Person not found | QuoteTimeline' };
 
   const base = process.env.NEXT_PUBLIC_SITE_URL ?? 'http://localhost:3000';
-  const url = `${base}/person/${p.slug}`;
+  const canonical = page > 1 ? `${base}/person/${p.slug}?page=${page}` : `${base}/person/${p.slug}`;
 
   const title = `${p.name} quotes | QuoteTimeline`;
   const description = p.description ?? `A timeline-style index of sourced quotes by ${p.name}.`;
@@ -26,8 +29,9 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   return {
     title,
     description,
-    alternates: { canonical: url },
-    openGraph: { title, description, url, type: 'profile' },
+    alternates: { canonical },
+    robots: page > 1 ? { index: false, follow: true } : undefined,
+    openGraph: { title, description, url: canonical, type: 'profile' },
     twitter: { card: 'summary', title, description },
   };
 }
