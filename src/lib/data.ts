@@ -112,10 +112,41 @@ export const getLatestQuotes = cache(async (limit: number) => {
   return quotes.map(mapQuote);
 });
 
-export const getQuotesByPerson = cache(async (personSlug: string) => {
+const DEFAULT_PAGE_SIZE = 50;
+const MAX_PAGE_SIZE = 200;
+
+function clampPageSize(n: number) {
+  if (!Number.isFinite(n) || n <= 0) return DEFAULT_PAGE_SIZE;
+  return Math.min(Math.floor(n), MAX_PAGE_SIZE);
+}
+
+function clampPage(n: number) {
+  if (!Number.isFinite(n) || n <= 0) return 1;
+  return Math.floor(n);
+}
+
+export type Pagination = {
+  page?: number;
+  pageSize?: number;
+};
+
+export const getQuoteCountByPerson = cache(async (personSlug: string) => {
+  return prisma.quote.count({ where: { person: { slug: personSlug } } });
+});
+
+export const getQuoteCountByTopic = cache(async (topicSlug: string) => {
+  return prisma.quote.count({ where: { topics: { some: { topic: { slug: topicSlug } } } } });
+});
+
+export const getQuotesByPerson = cache(async (personSlug: string, pagination: Pagination = {}) => {
+  const pageSize = clampPageSize(pagination.pageSize ?? DEFAULT_PAGE_SIZE);
+  const page = clampPage(pagination.page ?? 1);
+
   const quotes = await prisma.quote.findMany({
     where: { person: { slug: personSlug } },
     orderBy: { date: 'desc' },
+    take: pageSize,
+    skip: (page - 1) * pageSize,
     include: {
       person: { select: { slug: true } },
       source: { select: { type: true, title: true, url: true, publisher: true } },
@@ -125,10 +156,15 @@ export const getQuotesByPerson = cache(async (personSlug: string) => {
   return quotes.map(mapQuote);
 });
 
-export const getQuotesByTopic = cache(async (topicSlug: string) => {
+export const getQuotesByTopic = cache(async (topicSlug: string, pagination: Pagination = {}) => {
+  const pageSize = clampPageSize(pagination.pageSize ?? DEFAULT_PAGE_SIZE);
+  const page = clampPage(pagination.page ?? 1);
+
   const quotes = await prisma.quote.findMany({
     where: { topics: { some: { topic: { slug: topicSlug } } } },
     orderBy: { date: 'desc' },
+    take: pageSize,
+    skip: (page - 1) * pageSize,
     include: {
       person: { select: { slug: true } },
       source: { select: { type: true, title: true, url: true, publisher: true } },

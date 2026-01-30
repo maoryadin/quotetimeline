@@ -5,9 +5,12 @@ import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { SiteFooter } from '@/components/SiteFooter';
 import { SiteHeader } from '@/components/SiteHeader';
-import { getQuotesByTopic, getTopicBySlug } from '@/lib/data';
+import { getQuoteCountByTopic, getQuotesByTopic, getTopicBySlug } from '@/lib/data';
 
-type Props = { params: Promise<{ topic: string }> };
+type Props = {
+  params: Promise<{ topic: string }>;
+  searchParams?: Promise<{ page?: string }>;
+};
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { topic } = await params;
@@ -29,12 +32,26 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   };
 }
 
-export default async function TopicPage({ params }: Props) {
+function toPage(s: string | undefined) {
+  const n = Number(s);
+  if (!Number.isFinite(n) || n <= 0) return 1;
+  return Math.floor(n);
+}
+
+export default async function TopicPage({ params, searchParams }: Props) {
   const { topic } = await params;
+  const sp = (await searchParams) ?? {};
+  const page = toPage(sp.page);
+
   const t = await getTopicBySlug(topic);
   if (!t) return notFound();
 
-  const quotes = await getQuotesByTopic(topic);
+  const pageSize = 50;
+
+  const [quotes, totalQuotes] = await Promise.all([
+    getQuotesByTopic(topic, { page, pageSize }),
+    getQuoteCountByTopic(topic),
+  ]);
 
   return (
     <>
@@ -63,6 +80,10 @@ export default async function TopicPage({ params }: Props) {
 
         <section className="mt-10">
           <h2 className="text-lg font-semibold">Quotes</h2>
+          <div className="mt-2 text-sm text-slate-600 dark:text-slate-300">
+            Page {page} of {Math.max(1, Math.ceil(totalQuotes / pageSize))} • {totalQuotes} total
+          </div>
+
           <ul className="mt-4 grid grid-cols-1 gap-3">
             {quotes.map((q) => (
               <li
@@ -70,24 +91,48 @@ export default async function TopicPage({ params }: Props) {
                 className="rounded-2xl border border-slate-200/70 bg-white/60 p-5 shadow-sm hover:bg-white dark:border-white/10 dark:bg-black/20"
               >
                 <Link href={`/quote/${q.slug}`} className="block">
-                    <div className="flex items-baseline justify-between gap-3">
-                      <div className="text-xs text-slate-500 dark:text-slate-400">{q.date}</div>
-                      <div className="text-xs text-slate-500 dark:text-slate-400">{q.source.publisher ?? 'Source'}</div>
-                    </div>
-                    <div className="mt-2 text-base leading-snug text-slate-900 dark:text-slate-100">“{q.text}”</div>
-                    {q.context ? (
-                      <div className="mt-2 line-clamp-2 text-sm text-slate-600 dark:text-slate-300">{q.context}</div>
-                    ) : null}
-                  </Link>
-                  <div className="mt-3 text-xs text-slate-500 dark:text-slate-400">
-                    Source:{' '}
-                    <a className="underline" href={q.source.url} target="_blank" rel="noreferrer">
-                      {q.source.title}
-                    </a>
+                  <div className="flex items-baseline justify-between gap-3">
+                    <div className="text-xs text-slate-500 dark:text-slate-400">{q.date}</div>
+                    <div className="text-xs text-slate-500 dark:text-slate-400">{q.source.publisher ?? 'Source'}</div>
                   </div>
+                  <div className="mt-2 text-base leading-snug text-slate-900 dark:text-slate-100">“{q.text}”</div>
+                  {q.context ? (
+                    <div className="mt-2 line-clamp-2 text-sm text-slate-600 dark:text-slate-300">{q.context}</div>
+                  ) : null}
+                </Link>
+                <div className="mt-3 text-xs text-slate-500 dark:text-slate-400">
+                  Source:{' '}
+                  <a className="underline" href={q.source.url} target="_blank" rel="noreferrer">
+                    {q.source.title}
+                  </a>
+                </div>
               </li>
             ))}
           </ul>
+
+          <div className="mt-6 flex items-center justify-between gap-3">
+            {page > 1 ? (
+              <Link
+                className="rounded-xl border border-slate-200/70 bg-white/60 px-4 py-2 text-sm shadow-sm hover:bg-white dark:border-white/10 dark:bg-black/20"
+                href={`/topic/${t.slug}?page=${page - 1}`}
+              >
+                ← Newer
+              </Link>
+            ) : (
+              <div />
+            )}
+
+            {page * pageSize < totalQuotes ? (
+              <Link
+                className="rounded-xl border border-slate-200/70 bg-white/60 px-4 py-2 text-sm shadow-sm hover:bg-white dark:border-white/10 dark:bg-black/20"
+                href={`/topic/${t.slug}?page=${page + 1}`}
+              >
+                Older →
+              </Link>
+            ) : (
+              <div />
+            )}
+          </div>
         </section>
 
         <SiteFooter />
