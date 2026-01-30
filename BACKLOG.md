@@ -3,21 +3,30 @@
 This backlog is ordered roughly by **impact → effort**.
 
 ## Now (next 1–2 sessions)
-1. **Data correctness (ingestion)**
+1. **Trump-only UX pivot**
+   - Make `/` a Trump timeline (no “People”).
+   - Update nav + copy to be Trump-focused.
+
+2. **Scrolling chart (sticky, changes as you scroll)**
+   - Feed of Trump posts/quotes.
+   - One sticky chart that updates to the active post (IntersectionObserver).
+   - Start with 7D window.
+
+3. **Market data MVP (free/low-cost)**
+   - Add daily S&P 500 + VIX series for 7D windows.
+   - Cache results in DB (avoid calling provider on every request).
+
+4. **Data correctness (ingestion)**
    - Enforce unique, stable slugs on ingest (collision handling; avoid overwriting different quotes).
    - Add validation for `source.url` and `date` (fail fast on bad inputs).
 
-2. **Information architecture polish**
-   - Add filters: year, source type, topic.
-   - Add pagination/infinite scroll on person/topic pages.
-
-3. **Search improvements (performance + relevance)**
-   - Evaluate Postgres FTS (tsvector) vs current Prisma `contains`.
-   - Add indexes and basic ranking.
+5. **Information architecture polish**
+   - Filters: year, source type, topic.
+   - Pagination/infinite scroll on the main Trump feed.
 
 ✅ Recently completed
 - Removed sample-data coupling; data is DB-backed via Prisma.
-- Added `/topics` + `/people` pages and updated header nav.
+- Added `/topics` and updated header nav.
 - Added per-page `generateMetadata()` + canonical URLs.
 
 ## Soon
