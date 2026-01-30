@@ -11,12 +11,18 @@ type EnsureNonCollidingSlugInput = {
 };
 
 export function stableQuoteSlug(text: string, dateISO: string, sourceUrl: string, hashLen = 8) {
-  const base = text
+  let base = text
     .toLowerCase()
+    // keep alnum + spaces/hyphens only
     .replace(/[^a-z0-9\s-]/g, '')
     .trim()
     .replace(/\s+/g, '-')
+    .replace(/^-+|-+$/g, '')
     .slice(0, 60);
+
+  // If the text is entirely symbols/emojis/etc, fall back to a generic prefix.
+  // The hash still makes the slug deterministic + unique.
+  if (!base) base = 'quote';
 
   // Uniqueness + stability across sources even when the readable prefix collides.
   // Including sourceUrl prevents overwriting the same sentence that appears in multiple sources.
