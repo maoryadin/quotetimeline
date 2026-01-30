@@ -12,6 +12,7 @@ type Props = {
 export function TrumpScrolly({ quotes }: Props) {
   const [activeId, setActiveId] = useState<string | null>(quotes[0]?.id ?? null);
   const rootRef = useRef<HTMLDivElement | null>(null);
+  const feedRef = useRef<HTMLDivElement | null>(null);
 
   const activeQuote = useMemo(() => {
     const q = quotes.find((x) => x.id === activeId);
@@ -20,17 +21,25 @@ export function TrumpScrolly({ quotes }: Props) {
 
   useEffect(() => {
     const root = rootRef.current;
-    if (!root) return;
+    const feed = feedRef.current;
+    if (!root || !feed) return;
 
-    const cards = Array.from(root.querySelectorAll<HTMLElement>('[data-quote-id]'));
+    const cards = Array.from(feed.querySelectorAll<HTMLElement>('[data-quote-id]'));
     if (!cards.length) return;
 
     // IntersectionObserver callbacks only include entries that changed.
     // To reliably pick the "active" card, keep our own visibility cache.
     const state = new Map<string, IntersectionObserverEntry>();
 
+    const isDesktop = window.matchMedia('(min-width: 1024px)').matches;
+
     const pickActive = () => {
-      const centerY = window.innerHeight / 2;
+      const centerY = isDesktop
+        ? (() => {
+            const feedRect = feed.getBoundingClientRect();
+            return feedRect.top + feed.clientHeight / 2;
+          })()
+        : window.innerHeight / 2;
 
       const visible = Array.from(state.entries())
         .filter(([, e]) => e.isIntersecting)
@@ -56,8 +65,10 @@ export function TrumpScrolly({ quotes }: Props) {
         pickActive();
       },
       {
-        root: null,
-        // Trigger when the card crosses the middle-ish of the viewport.
+        // On desktop, the quote feed scrolls independently so the market panel can stay sticky.
+        // On mobile, fall back to the viewport as the scroll container.
+        root: isDesktop ? feed : null,
+        // Trigger when the card crosses the middle-ish of the scroll container.
         rootMargin: '-40% 0px -45% 0px',
         threshold: [0, 0.1, 0.25, 0.5, 0.75, 1],
       },
@@ -73,8 +84,39 @@ export function TrumpScrolly({ quotes }: Props) {
   }
 
   return (
-    <div className="grid grid-cols-1 gap-6 lg:grid-cols-[1fr_320px]" ref={rootRef}>
-      <div className="space-y-3">
+    <div className="grid grid-cols-1 gap-6 lg:grid-cols-[360px_1fr]" ref={rootRef}>
+      <aside className="order-2 lg:order-1 lg:sticky lg:top-24 lg:h-[calc(100vh-7rem)]">
+        <div className="h-full rounded-2xl border border-slate-200/70 bg-white/60 p-5 shadow-sm dark:border-white/10 dark:bg-black/20">
+          <div className="text-xs font-medium uppercase tracking-wide text-slate-500 dark:text-slate-400">Market window</div>
+          <div className="mt-2 text-sm text-slate-700 dark:text-slate-200">
+            {activeQuote ? (
+              <>
+                <div className="font-semibold">7D around {activeQuote.date}</div>
+                <div className="mt-1 text-xs text-slate-500 dark:text-slate-400">Chart stays put while you scroll quotes.</div>
+                <Link
+                  href={`/quote/${activeQuote.slug}`}
+                  className="mt-2 block text-xs font-medium text-indigo-700 hover:underline dark:text-indigo-300"
+                >
+                  Open active quote →
+                </Link>
+              </>
+            ) : null}
+          </div>
+
+          <div className="mt-4">
+            {activeQuote ? <MarketMiniChart anchorDate={activeQuote.date} /> : null}
+          </div>
+
+          <div className="mt-4 text-xs text-slate-500 dark:text-slate-400">
+            Data note: MVP uses free market proxies (SPY, VXX) and caches daily points in Postgres.
+          </div>
+        </div>
+      </aside>
+
+      <div
+        ref={feedRef}
+        className="order-1 space-y-3 lg:order-2 lg:h-[calc(100vh-7rem)] lg:overflow-y-auto lg:pr-2"
+      >
         {quotes.map((q) => {
           const isActive = q.id === activeId;
           return (
@@ -102,34 +144,6 @@ export function TrumpScrolly({ quotes }: Props) {
           );
         })}
       </div>
-
-      <aside className="lg:sticky lg:top-24">
-        <div className="rounded-2xl border border-slate-200/70 bg-white/60 p-5 shadow-sm dark:border-white/10 dark:bg-black/20">
-          <div className="text-xs font-medium uppercase tracking-wide text-slate-500 dark:text-slate-400">Market window</div>
-          <div className="mt-2 text-sm text-slate-700 dark:text-slate-200">
-            {activeQuote ? (
-              <>
-                <div className="font-semibold">7D around {activeQuote.date}</div>
-                <div className="mt-1 text-xs text-slate-500 dark:text-slate-400">Sticky chart updates as you scroll.</div>
-                <Link
-                  href={`/quote/${activeQuote.slug}`}
-                  className="mt-2 block text-xs font-medium text-indigo-700 hover:underline dark:text-indigo-300"
-                >
-                  Open active quote →
-                </Link>
-              </>
-            ) : null}
-          </div>
-
-          <div className="mt-4">
-            {activeQuote ? <MarketMiniChart anchorDate={activeQuote.date} /> : null}
-          </div>
-
-          <div className="mt-4 text-xs text-slate-500 dark:text-slate-400">
-            Data note: MVP uses free market proxies (SPY, VXX) and caches daily points in Postgres.
-          </div>
-        </div>
-      </aside>
     </div>
   );
 }
