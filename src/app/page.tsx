@@ -68,7 +68,7 @@ export default async function Home({ searchParams }: Props) {
 
             <h1 className="mt-5 text-4xl font-semibold tracking-tight sm:text-5xl">{p.name} timeline (sourced quotes)</h1>
             <p className="mt-4 text-slate-600 dark:text-slate-300">
-              {p.description ?? 'A neutral, source-first index of public statements.'} Click any quote to see the original source.
+              {p.description ?? 'A neutral, source-first index of public statements.'} Scroll the feed to see the sticky market window update, and click any quote to view the primary source.
             </p>
 
             <div className="mt-6">

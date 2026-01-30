@@ -109,7 +109,27 @@ export function MarketMiniChart({ anchorDate }: Props) {
   }, [spy, vxx, anchorDate]);
 
   if (!charts.spy.ready || !charts.vxx.ready) {
-    return <div className="text-xs text-slate-500 dark:text-slate-400">Loading SPY & VXX…</div>;
+    return (
+      <div className="space-y-4" aria-busy="true" aria-live="polite">
+        <div className="animate-pulse">
+          <div className="flex items-baseline justify-between">
+            <div className="h-3 w-24 rounded bg-slate-200/80 dark:bg-white/10" />
+            <div className="h-3 w-12 rounded bg-slate-200/80 dark:bg-white/10" />
+          </div>
+          <div className="mt-2 h-20 w-full rounded-lg bg-slate-200/60 dark:bg-white/5" />
+        </div>
+
+        <div className="animate-pulse">
+          <div className="flex items-baseline justify-between">
+            <div className="h-3 w-24 rounded bg-slate-200/80 dark:bg-white/10" />
+            <div className="h-3 w-12 rounded bg-slate-200/80 dark:bg-white/10" />
+          </div>
+          <div className="mt-2 h-20 w-full rounded-lg bg-slate-200/60 dark:bg-white/5" />
+        </div>
+
+        <div className="text-[11px] text-slate-500 dark:text-slate-400">Loading market window…</div>
+      </div>
+    );
   }
 
   return (

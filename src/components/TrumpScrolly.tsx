@@ -25,17 +25,35 @@ export function TrumpScrolly({ quotes }: Props) {
     const cards = Array.from(root.querySelectorAll<HTMLElement>('[data-quote-id]'));
     if (!cards.length) return;
 
+    // IntersectionObserver callbacks only include entries that changed.
+    // To reliably pick the "active" card, keep our own visibility cache.
+    const state = new Map<string, IntersectionObserverEntry>();
+
+    const pickActive = () => {
+      const centerY = window.innerHeight / 2;
+
+      const visible = Array.from(state.entries())
+        .filter(([, e]) => e.isIntersecting)
+        .map(([id, e]) => {
+          const rect = e.boundingClientRect;
+          const cardCenterY = rect.top + rect.height / 2;
+          const distance = Math.abs(cardCenterY - centerY);
+          return { id, distance };
+        })
+        .sort((a, b) => a.distance - b.distance);
+
+      const best = visible[0];
+      if (best?.id) setActiveId(best.id);
+    };
+
     const obs = new IntersectionObserver(
       (entries) => {
-        // Prefer the most-visible card. (IntersectionObserver doesn't give ratios reliably across browsers,
-        // so we pick the first intersecting entry sorted by bounding box top.)
-        const visible = entries
-          .filter((e) => e.isIntersecting)
-          .sort((a, b) => (a.boundingClientRect.top ?? 0) - (b.boundingClientRect.top ?? 0));
-
-        const best = visible[0];
-        const id = (best?.target as HTMLElement | undefined)?.dataset.quoteId;
-        if (id) setActiveId(id);
+        for (const e of entries) {
+          const id = (e.target as HTMLElement | undefined)?.dataset.quoteId;
+          if (!id) continue;
+          state.set(id, e);
+        }
+        pickActive();
       },
       {
         root: null,
@@ -92,9 +110,13 @@ export function TrumpScrolly({ quotes }: Props) {
             {activeQuote ? (
               <>
                 <div className="font-semibold">7D around {activeQuote.date}</div>
-                <div className="mt-1 text-xs text-slate-500 dark:text-slate-400">
-                  Sticky chart updates as you scroll the quote feed.
-                </div>
+                <div className="mt-1 text-xs text-slate-500 dark:text-slate-400">Sticky chart updates as you scroll.</div>
+                <Link
+                  href={`/quote/${activeQuote.slug}`}
+                  className="mt-2 block text-xs font-medium text-indigo-700 hover:underline dark:text-indigo-300"
+                >
+                  Open active quote →
+                </Link>
               </>
             ) : null}
           </div>

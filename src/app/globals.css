@@ -20,6 +20,8 @@ body {
 }
 
 body {
+  font-family: var(--font-geist-sans), ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial,
+    "Apple Color Emoji", "Segoe UI Emoji";
   color: rgb(var(--foreground));
   background:
     radial-gradient(1200px 600px at 20% -10%, rgba(99, 102, 241, 0.25), transparent 60%),
