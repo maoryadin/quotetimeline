@@ -10,8 +10,8 @@ export async function generateMetadata(): Promise<Metadata> {
   const base = process.env.NEXT_PUBLIC_SITE_URL ?? 'http://localhost:3000';
   const url = `${base}/topics`;
 
-  const title = 'Topics | QuoteTimeline';
-  const description = 'Browse topic timelines based on currently indexed quotes.';
+  const title = 'Trump topics | QuoteTimeline';
+  const description = 'Browse topic timelines for currently indexed Trump quotes.';
 
   return {
     title,
@@ -39,9 +39,9 @@ export default async function TopicsPage() {
         </div>
 
         <header className="mt-6 rounded-3xl border border-slate-200/70 bg-white/60 p-8 shadow-sm dark:border-white/10 dark:bg-black/20">
-          <h1 className="text-3xl font-semibold tracking-tight sm:text-4xl">Topics</h1>
+          <h1 className="text-3xl font-semibold tracking-tight sm:text-4xl">Trump topics</h1>
           <p className="mt-3 max-w-2xl text-slate-600 dark:text-slate-300">
-            Browse topic timelines. Counts are based on currently indexed quotes.
+            Browse topic timelines for currently indexed Trump quotes. Counts reflect how often a topic appears in the quote set.
           </p>
         </header>
 
