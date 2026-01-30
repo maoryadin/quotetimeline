@@ -12,12 +12,12 @@ Goal: scalable SEO traffic (quote pages + topic timelines) and ad monetization.
 ## Current stack
 - Next.js (App Router) + TypeScript
 - Tailwind (via `@import "tailwindcss"` in `globals.css`)
+- Prisma + Postgres (Vercel Postgres)
 - Deployed on Vercel
-- Data is currently **sample data** in `src/lib/sample-data.ts` (must be replaced before public launch/monetization)
 
 ## Key pages/routes
 - `/` — landing page with hero + topics + latest quotes
-- `/search` — keyword search (MVP: searches sample data in-memory)
+- `/search` — keyword search (MVP: Prisma `contains` on text/context/source/person)
 - `/person/[person]` — person hub (currently `donald-trump`)
 - `/topic/[topic]` — topic hub
 - `/quote/[slug]` — individual quote page
@@ -56,5 +56,6 @@ See `BACKLOG.md` for an ordered, maintained backlog.
 
 ## Notes for future sessions (how to continue fast)
 - Start by reading this file (`PROJECT.md`).
-- Next file to touch for data: `src/lib/sample-data.ts` → replace with DB-backed model.
+- Data access lives in `src/lib/data.ts` (Prisma reads) and `prisma/schema.prisma`.
+- Ingest scripts live in `scripts/ingest/*`.
 - If Vercel URL changes, update `NEXT_PUBLIC_SITE_URL` env var.

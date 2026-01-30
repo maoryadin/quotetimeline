@@ -69,6 +69,35 @@ function slugifyQuote(text: string, dateISO: string) {
   return `${base}-${dateISO}`;
 }
 
+function assertValidHttpUrl(url: string) {
+  let u: URL;
+  try {
+    u = new URL(url);
+  } catch {
+    throw new Error(`Invalid URL: ${url}`);
+  }
+  if (u.protocol !== 'http:' && u.protocol !== 'https:') throw new Error(`Invalid URL protocol: ${url}`);
+}
+
+async function resolveUniqueQuoteSlug(baseSlug: string, text: string) {
+  let slug = baseSlug;
+  let n = 2;
+
+  while (true) {
+    const existing = await prisma.quote.findUnique({ where: { slug }, select: { text: true } });
+
+    // If empty, we can safely create with this slug.
+    if (!existing) return slug;
+
+    // Idempotency: if the same content is already stored under this slug, re-use it.
+    if (existing.text === text) return slug;
+
+    // Collision: append a numeric suffix.
+    slug = `${baseSlug}-${n}`;
+    n += 1;
+  }
+}
+
 async function fetchHtml(url: string) {
   const res = await fetch(url, {
     headers: {
@@ -175,6 +204,8 @@ async function ingest(opts: IngestOptions) {
   let ingested = 0;
 
   for (const url of postUrls) {
+    assertValidHttpUrl(url);
+
     const html = await fetchHtml(url);
     const title = extractTitle(html) ?? 'Remarks';
     const published = extractMetaPublishedTime(html);
@@ -184,6 +215,7 @@ async function ingest(opts: IngestOptions) {
     }
 
     const date = new Date(published);
+    if (Number.isNaN(date.getTime())) throw new Error(`Invalid published date: ${published} (${url})`);
     const dateISO = date.toISOString().slice(0, 10);
 
     const tags = extractTags(html);
@@ -199,6 +231,8 @@ async function ingest(opts: IngestOptions) {
         update: { name: t.name },
       });
     }
+
+    assertValidHttpUrl(url);
 
     const source = await prisma.source.upsert({
       where: { url },
@@ -221,7 +255,8 @@ async function ingest(opts: IngestOptions) {
     const sentences = sentenceSplit(body).slice(0, 30);
 
     for (const sentence of sentences) {
-      const slug = slugifyQuote(sentence, dateISO);
+      const baseSlug = slugifyQuote(sentence, dateISO);
+      const slug = await resolveUniqueQuoteSlug(baseSlug, sentence);
 
       await prisma.quote.upsert({
         where: { slug },

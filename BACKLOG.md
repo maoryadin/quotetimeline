@@ -3,21 +3,22 @@
 This backlog is ordered roughly by **impact → effort**.
 
 ## Now (next 1–2 sessions)
-1. **Remove remaining sample-data coupling**
-   - Ensure no UI imports from `src/lib/sample-data.ts`.
-   - Decide: delete `sample-data.ts` or keep only for local dev/storybook.
+1. **Data correctness (ingestion)**
+   - Enforce unique, stable slugs on ingest (collision handling; avoid overwriting different quotes).
+   - Add validation for `source.url` and `date` (fail fast on bad inputs).
 
-2. **Navigation + IA polish**
-   - Add `/topics` page (list topics with counts).
-   - Update header nav to: Home / People / Topics / Trending / Search.
+2. **Information architecture polish**
+   - Add filters: year, source type, topic.
+   - Add pagination/infinite scroll on person/topic pages.
 
-3. **Quote page SEO hardening**
-   - Add per-page `generateMetadata()` for `/quote/[slug]`, `/person/[person]`, `/topic/[topic]`.
-   - Add canonical URLs using `NEXT_PUBLIC_SITE_URL`.
+3. **Search improvements (performance + relevance)**
+   - Evaluate Postgres FTS (tsvector) vs current Prisma `contains`.
+   - Add indexes and basic ranking.
 
-4. **Data correctness**
-   - Enforce unique, stable slugs on ingest (collision handling).
-   - Add validation for `source.url` and `date`.
+✅ Recently completed
+- Removed sample-data coupling; data is DB-backed via Prisma.
+- Added `/topics` + `/people` pages and updated header nav.
+- Added per-page `generateMetadata()` + canonical URLs.
 
 ## Soon
 5. **Search improvements (performance + relevance)**
