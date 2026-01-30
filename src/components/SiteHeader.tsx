@@ -32,6 +32,13 @@ export function SiteHeader() {
   return (
     <header className="sticky top-0 z-50 border-b border-slate-200/70 bg-white/70 backdrop-blur dark:border-white/10 dark:bg-black/30">
       <div className="mx-auto flex max-w-5xl items-center justify-between gap-4 px-6 py-4">
+        <a
+          href="#main"
+          className="sr-only rounded-lg bg-white px-3 py-2 text-sm text-slate-900 shadow-sm focus:not-sr-only focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2 focus-visible:ring-offset-white dark:bg-black dark:text-slate-100 dark:focus-visible:ring-offset-black"
+        >
+          Skip to content
+        </a>
+
         <Link
           href="/"
           className="group flex items-center gap-2 rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2 focus-visible:ring-offset-white dark:focus-visible:ring-offset-black"

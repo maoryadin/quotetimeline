@@ -58,7 +58,7 @@ export default async function Home({ searchParams }: Props) {
   return (
     <>
       <SiteHeader />
-      <main className="mx-auto max-w-5xl px-6 py-10">
+      <main id="main" className="mx-auto max-w-5xl px-6 py-10">
         <section className="rounded-3xl border border-slate-200/70 bg-white/60 p-8 shadow-sm dark:border-white/10 dark:bg-black/20">
           <div className="max-w-2xl">
             <div className="inline-flex items-center gap-2 rounded-full border border-slate-200/70 bg-white/70 px-3 py-1 text-xs text-slate-600 dark:border-white/10 dark:bg-black/20 dark:text-slate-300">
