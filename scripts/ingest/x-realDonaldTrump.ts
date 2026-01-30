@@ -21,6 +21,16 @@ function tweetUrl(username: string, id: string) {
   return `https://x.com/${username}/status/${id}`;
 }
 
+function assertValidHttpUrl(url: string) {
+  let u: URL;
+  try {
+    u = new URL(url);
+  } catch {
+    throw new Error(`Invalid URL: ${url}`);
+  }
+  if (u.protocol !== 'http:' && u.protocol !== 'https:') throw new Error(`Invalid URL protocol: ${url}`);
+}
+
 function toISODate(createdAt: string) {
   const d = new Date(createdAt);
   if (Number.isNaN(d.getTime())) throw new Error(`Invalid tweet createdAt: ${createdAt}`);
@@ -141,6 +151,7 @@ async function main() {
 
     const dateISO = toISODate(t.createdAt);
     const url = tweetUrl(username, t.id);
+    assertValidHttpUrl(url);
 
     const hashtags = extractHashtags(t.text);
     const topics = hashtags

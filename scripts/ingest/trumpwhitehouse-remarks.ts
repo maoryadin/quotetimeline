@@ -60,7 +60,7 @@ function sentenceSplit(text: string) {
   return [...new Set(good)];
 }
 
-function stableQuoteSlug(text: string, dateISO: string, sourceUrl: string) {
+function stableQuoteSlug(text: string, dateISO: string, sourceUrl: string, hashLen = 8) {
   const base = text
     .toLowerCase()
     .replace(/[^a-z0-9\s-]/g, '')
@@ -70,8 +70,50 @@ function stableQuoteSlug(text: string, dateISO: string, sourceUrl: string) {
 
   // Uniqueness + stability across sources even when the readable prefix collides.
   // Including sourceUrl prevents overwriting the same sentence that appears in multiple sources.
-  const hash = createHash('sha1').update(`${text}|${dateISO}|${sourceUrl}`).digest('hex').slice(0, 8);
+  const hash = createHash('sha1').update(`${text}|${dateISO}|${sourceUrl}`).digest('hex').slice(0, hashLen);
   return `${base}-${dateISO}-${hash}`;
+}
+
+async function ensureNonCollidingSlug(input: {
+  proposed: string;
+  text: string;
+  dateISO: string;
+  sourceUrl: string;
+  personId: string;
+  sourceId: string;
+}) {
+  const existing = await prisma.quote.findUnique({ where: { slug: input.proposed } });
+  if (!existing) return input.proposed;
+
+  const sameIdentity =
+    existing.text === input.text &&
+    existing.personId === input.personId &&
+    existing.sourceId === input.sourceId &&
+    existing.date.toISOString().slice(0, 10) === input.dateISO;
+
+  // If it's the same quote (rerun ingest), keep the same slug.
+  if (sameIdentity) return input.proposed;
+
+  // Collision fallback: keep slugs stable by deterministically using a longer hash.
+  const fallback = stableQuoteSlug(input.text, input.dateISO, input.sourceUrl, 12);
+  if (fallback === input.proposed) {
+    throw new Error(`Slug collision detected and fallback did not change: ${input.proposed}`);
+  }
+
+  const existingFallback = await prisma.quote.findUnique({ where: { slug: fallback } });
+  if (!existingFallback) return fallback;
+
+  const sameFallbackIdentity =
+    existingFallback.text === input.text &&
+    existingFallback.personId === input.personId &&
+    existingFallback.sourceId === input.sourceId &&
+    existingFallback.date.toISOString().slice(0, 10) === input.dateISO;
+
+  if (sameFallbackIdentity) return fallback;
+
+  throw new Error(
+    `Unresolvable slug collision for ${input.sourceUrl} (${input.dateISO}). Proposed: ${input.proposed}, fallback: ${fallback}`
+  );
 }
 
 function assertValidHttpUrl(url: string) {
@@ -241,7 +283,15 @@ async function ingest(opts: IngestOptions) {
     const sentences = sentenceSplit(body).slice(0, 30);
 
     for (const sentence of sentences) {
-      const slug = stableQuoteSlug(sentence, dateISO, url);
+      const proposed = stableQuoteSlug(sentence, dateISO, url);
+      const slug = await ensureNonCollidingSlug({
+        proposed,
+        text: sentence,
+        dateISO,
+        sourceUrl: url,
+        personId: person.id,
+        sourceId: source.id,
+      });
 
       await prisma.quote.upsert({
         where: { slug },
@@ -257,6 +307,7 @@ async function ingest(opts: IngestOptions) {
           },
         },
         update: {
+          // Safety: only update mutable fields. Identity is enforced by slug + ensureNonCollidingSlug().
           text: sentence,
           date: new Date(`${dateISO}T00:00:00.000Z`),
           context: `Excerpt from: ${title}.`,
