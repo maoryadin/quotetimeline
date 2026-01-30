@@ -1,9 +1,26 @@
 export const dynamic = 'force-dynamic';
 
+import type { Metadata } from 'next';
 import Link from 'next/link';
 import { SiteHeader } from '@/components/SiteHeader';
 import { SiteFooter } from '@/components/SiteFooter';
 import { getTopicsWithCounts } from '@/lib/data';
+
+export async function generateMetadata(): Promise<Metadata> {
+  const base = process.env.NEXT_PUBLIC_SITE_URL ?? 'http://localhost:3000';
+  const url = `${base}/topics`;
+
+  const title = 'Topics | QuoteTimeline';
+  const description = 'Browse topic timelines based on currently indexed quotes.';
+
+  return {
+    title,
+    description,
+    alternates: { canonical: url },
+    openGraph: { title, description, url, type: 'website' },
+    twitter: { card: 'summary', title, description },
+  };
+}
 
 export default async function TopicsPage() {
   const topics = await getTopicsWithCounts();

@@ -1,5 +1,6 @@
 export const dynamic = 'force-dynamic';
 
+import type { Metadata } from 'next';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { SiteHeader } from '@/components/SiteHeader';
@@ -16,6 +17,22 @@ function toPage(s: string | undefined) {
 type Props = {
   searchParams?: Promise<{ page?: string }>;
 };
+
+export async function generateMetadata(): Promise<Metadata> {
+  const base = process.env.NEXT_PUBLIC_SITE_URL ?? 'http://localhost:3000';
+  const url = `${base}/`;
+
+  const title = 'Donald J. Trump timeline (sourced quotes) | QuoteTimeline';
+  const description = 'A neutral, source-first timeline of verbatim public quotes by Donald J. Trump, with dates and primary sources.';
+
+  return {
+    title,
+    description,
+    alternates: { canonical: url },
+    openGraph: { title, description, url, type: 'website' },
+    twitter: { card: 'summary', title, description },
+  };
+}
 
 export default async function Home({ searchParams }: Props) {
   const sp = (await searchParams) ?? {};

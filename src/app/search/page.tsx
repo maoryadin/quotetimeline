@@ -1,5 +1,6 @@
 export const dynamic = 'force-dynamic';
 
+import type { Metadata } from 'next';
 import Link from 'next/link';
 import { SearchBar } from '@/components/SearchBar';
 import { searchQuotes } from '@/lib/data';
@@ -7,6 +8,28 @@ import { searchQuotes } from '@/lib/data';
 type Props = {
   searchParams: Promise<{ q?: string }>;
 };
+
+export async function generateMetadata({ searchParams }: Props): Promise<Metadata> {
+  const { q = '' } = await searchParams;
+  const query = (q ?? '').trim();
+
+  const base = process.env.NEXT_PUBLIC_SITE_URL ?? 'http://localhost:3000';
+  const url = `${base}/search`;
+
+  // Important for SEO: prevent indexing of arbitrary query pages.
+  // (We still allow crawling of the rest of the site.)
+  const title = query ? `Search “${query}” | QuoteTimeline` : 'Search | QuoteTimeline';
+  const description = 'Search across indexed quote text, context, sources, and people.';
+
+  return {
+    title,
+    description,
+    alternates: { canonical: url },
+    robots: query ? { index: false, follow: true } : { index: true, follow: true },
+    openGraph: { title, description, url, type: 'website' },
+    twitter: { card: 'summary', title, description },
+  };
+}
 
 export default async function SearchPage({ searchParams }: Props) {
   const { q = '' } = await searchParams;

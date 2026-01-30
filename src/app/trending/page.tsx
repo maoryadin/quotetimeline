@@ -1,9 +1,26 @@
 export const dynamic = 'force-dynamic';
 
+import type { Metadata } from 'next';
 import Link from 'next/link';
 import { SiteFooter } from '@/components/SiteFooter';
 import { SiteHeader } from '@/components/SiteHeader';
 import { getTrendingTopics } from '@/lib/data';
+
+export async function generateMetadata(): Promise<Metadata> {
+  const base = process.env.NEXT_PUBLIC_SITE_URL ?? 'http://localhost:3000';
+  const url = `${base}/trending`;
+
+  const title = 'Trending topics | QuoteTimeline';
+  const description = 'A lightweight snapshot of topic frequency across currently indexed quotes.';
+
+  return {
+    title,
+    description,
+    alternates: { canonical: url },
+    openGraph: { title, description, url, type: 'website' },
+    twitter: { card: 'summary', title, description },
+  };
+}
 
 export default async function TrendingPage() {
   // v1 “trending” = topic frequency across indexed quotes.
