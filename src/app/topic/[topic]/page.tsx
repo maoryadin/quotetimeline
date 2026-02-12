@@ -60,7 +60,7 @@ export default async function TopicPage({ params, searchParams }: Props) {
   return (
     <>
       <SiteHeader />
-      <main className="mx-auto max-w-5xl px-6 py-10">
+      <main id="main" className="mx-auto max-w-5xl px-6 py-10">
         <div className="flex items-center justify-between gap-3">
           <Link href="/" className="text-sm text-slate-600 hover:underline dark:text-slate-300">
             ← Home
@@ -92,7 +92,7 @@ export default async function TopicPage({ params, searchParams }: Props) {
             {quotes.map((q) => (
               <li
                 key={q.id}
-                className="rounded-2xl border border-slate-200/70 bg-white/60 p-5 shadow-sm hover:bg-white dark:border-white/10 dark:bg-black/20"
+                className="rounded-2xl border border-slate-200/70 bg-white/60 p-5 shadow-sm hover:bg-white focus-within:ring-2 focus-within:ring-indigo-500 focus-within:ring-offset-2 focus-within:ring-offset-white dark:border-white/10 dark:bg-black/20 dark:focus-within:ring-offset-black"
               >
                 <Link href={`/quote/${q.slug}`} className="block">
                   <div className="flex items-baseline justify-between gap-3">
@@ -106,7 +106,12 @@ export default async function TopicPage({ params, searchParams }: Props) {
                 </Link>
                 <div className="mt-3 text-xs text-slate-500 dark:text-slate-400">
                   Source:{' '}
-                  <a className="underline" href={q.source.url} target="_blank" rel="noreferrer">
+                  <a
+                    className="underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2 focus-visible:ring-offset-white dark:focus-visible:ring-offset-black"
+                    href={q.source.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
                     {q.source.title}
                   </a>
                 </div>

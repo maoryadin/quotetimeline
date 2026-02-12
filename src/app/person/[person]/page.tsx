@@ -79,7 +79,7 @@ export default async function PersonPage({ params, searchParams }: Props) {
   return (
     <>
       <SiteHeader />
-      <main className="mx-auto max-w-5xl px-6 py-10">
+      <main id="main" className="mx-auto max-w-5xl px-6 py-10">
         <div className="flex items-center justify-between gap-3">
           <Link href="/" className="text-sm text-slate-600 hover:underline dark:text-slate-300">
             ← Home
@@ -100,7 +100,7 @@ export default async function PersonPage({ params, searchParams }: Props) {
             {topTopics.map((t) => (
               <li
                 key={t.slug}
-                className="rounded-2xl border border-slate-200/70 bg-white/60 p-5 shadow-sm hover:bg-white dark:border-white/10 dark:bg-black/20"
+                className="rounded-2xl border border-slate-200/70 bg-white/60 p-5 shadow-sm hover:bg-white focus-within:ring-2 focus-within:ring-indigo-500 focus-within:ring-offset-2 focus-within:ring-offset-white dark:border-white/10 dark:bg-black/20 dark:focus-within:ring-offset-black"
               >
                 <Link className="block" href={`/topic/${t.slug}`}>
                   <div className="text-base font-semibold text-slate-900 dark:text-slate-100">{t.name}</div>
@@ -125,7 +125,7 @@ export default async function PersonPage({ params, searchParams }: Props) {
             {quotes.map((q) => (
               <li
                 key={q.id}
-                className="rounded-2xl border border-slate-200/70 bg-white/60 p-5 shadow-sm hover:bg-white dark:border-white/10 dark:bg-black/20"
+                className="rounded-2xl border border-slate-200/70 bg-white/60 p-5 shadow-sm hover:bg-white focus-within:ring-2 focus-within:ring-indigo-500 focus-within:ring-offset-2 focus-within:ring-offset-white dark:border-white/10 dark:bg-black/20 dark:focus-within:ring-offset-black"
               >
                 <Link href={`/quote/${q.slug}`} className="block">
                   <div className="flex items-baseline justify-between gap-3">
