@@ -141,5 +141,14 @@ export async function GET(req: Request) {
   }
 
   // If still empty (e.g., provider down), return empty series; the client has a graceful fallback.
-  return NextResponse.json({ symbol, points });
+  return NextResponse.json(
+    { symbol, points },
+    {
+      headers: {
+        // Cache the API response briefly at the edge/CDN. DB caching is the real guardrail;
+        // this just reduces repeated reads when users scroll rapidly.
+        'Cache-Control': 'public, max-age=60, stale-while-revalidate=300',
+      },
+    },
+  );
 }
