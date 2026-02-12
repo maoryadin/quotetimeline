@@ -10,8 +10,22 @@ type SeriesResponse = {
 };
 
 // Client-side memoization so rapid scrollytelling doesn't spam /api/market.
+// Keep a small cap so we don't grow unbounded during long scroll sessions.
+const MAX_SERIES_CACHE = 200;
 const seriesCache = new Map<string, SeriesResponse>();
 const inflight = new Map<string, Promise<SeriesResponse>>();
+
+function touchCache(key: string, value: SeriesResponse) {
+  // Map iteration order is insertion order; delete+set moves the key to the end (LRU-ish).
+  if (seriesCache.has(key)) seriesCache.delete(key);
+  seriesCache.set(key, value);
+
+  while (seriesCache.size > MAX_SERIES_CACHE) {
+    const oldest = seriesCache.keys().next().value as string | undefined;
+    if (!oldest) break;
+    seriesCache.delete(oldest);
+  }
+}
 
 function clamp(n: number, min: number, max: number) {
   return Math.max(min, Math.min(max, n));
@@ -65,14 +79,18 @@ async function fetchSeriesCached(symbol: string, anchorDate: string) {
   const key = `${symbol}::${anchorDate}`;
 
   const cached = seriesCache.get(key);
-  if (cached) return cached;
+  if (cached) {
+    // Refresh LRU order.
+    touchCache(key, cached);
+    return cached;
+  }
 
   const existing = inflight.get(key);
   if (existing) return existing;
 
   const p = fetchSeries(symbol, anchorDate)
     .then((series) => {
-      seriesCache.set(key, series);
+      touchCache(key, series);
       inflight.delete(key);
       return series;
     })
