@@ -32,12 +32,18 @@ export function TrumpScrolly({ quotes }: Props) {
   }, [activeId, quotes]);
 
   // Keep the URL hash in sync with the active quote so scrolly positions are shareable.
+  // Debounce to avoid jank while the IntersectionObserver rapidly changes "active" during fast scroll.
   useEffect(() => {
     if (!activeQuote) return;
+
     const next = `#q=${encodeURIComponent(activeQuote.slug)}`;
-    if (window.location.hash !== next) {
-      window.history.replaceState(null, '', next);
-    }
+    if (window.location.hash === next) return;
+
+    const t = window.setTimeout(() => {
+      if (window.location.hash !== next) window.history.replaceState(null, '', next);
+    }, 200);
+
+    return () => window.clearTimeout(t);
   }, [activeQuote]);
 
   const [isDesktop, setIsDesktop] = useState(false);
@@ -150,7 +156,7 @@ export function TrumpScrolly({ quotes }: Props) {
             ) : null}
           </div>
 
-          <div className="mt-4">
+          <div className="mt-4" aria-live="polite">
             {activeQuote ? <MarketMiniChart anchorDate={activeQuote.date} /> : null}
           </div>
 
@@ -190,19 +196,29 @@ export function TrumpScrolly({ quotes }: Props) {
                   ) : null}
                 </Link>
 
-                {q.topics.length ? (
-                  <div className="flex flex-wrap gap-2">
-                    {q.topics.slice(0, 3).map((t) => (
-                      <Link
-                        key={t.slug}
-                        href={`/topic/${t.slug}`}
-                        className="rounded-full border border-slate-200/70 bg-white/70 px-2 py-0.5 text-[11px] text-slate-700 hover:bg-white dark:border-white/10 dark:bg-black/20 dark:text-slate-200"
-                      >
-                        {t.name}
-                      </Link>
-                    ))}
-                  </div>
-                ) : null}
+                <div className="flex items-center justify-between gap-3">
+                  <a
+                    href={`#q=${encodeURIComponent(q.slug)}`}
+                    className="text-[11px] font-medium text-slate-500 hover:text-slate-700 hover:underline dark:text-slate-400 dark:hover:text-slate-200"
+                  >
+                    Deep link
+                  </a>
+
+                  {q.topics.length ? (
+                    <div className="flex flex-wrap justify-end gap-2">
+                      {q.topics.slice(0, 3).map((t) => (
+                        <Link
+                          key={t.slug}
+                          href={`/topic/${t.slug}`}
+                          className="rounded-full border border-slate-200/70 bg-white/70 px-2 py-0.5 text-[11px] text-slate-700 hover:bg-white dark:border-white/10 dark:bg-black/20 dark:text-slate-200"
+                        >
+                          {t.name}
+                        </Link>
+                      ))}
+                    </div>
+                  ) : null}
+                </div>
+
               </div>
             </article>
           );
