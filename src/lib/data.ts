@@ -23,6 +23,7 @@ export type QuoteView = {
 export const SITE = {
   name: 'QuoteTimeline',
   description: 'Trump-first quote timeline with dates and primary sources.',
+  contactEmail: process.env.NEXT_PUBLIC_CONTACT_EMAIL ?? null,
 };
 
 export const slugifyQuote = (text: string, date: string) => {

@@ -3,6 +3,7 @@ export const dynamic = 'force-static';
 import type { Metadata } from 'next';
 import { SiteHeader } from '@/components/SiteHeader';
 import { SiteFooter } from '@/components/SiteFooter';
+import { SITE } from '@/lib/data';
 
 export async function generateMetadata(): Promise<Metadata> {
   const base = process.env.NEXT_PUBLIC_SITE_URL ?? 'http://localhost:3000';
@@ -37,11 +38,19 @@ export default function ContactPage() {
           <div className="text-sm text-slate-700 dark:text-slate-200">
             Email:
             <div className="mt-2 rounded-xl border border-slate-200/70 bg-white/70 p-4 font-mono text-sm dark:border-white/10 dark:bg-black/20">
-              contact@quotetimeline.example
+              {SITE.contactEmail ? (
+                <a className="text-indigo-700 hover:underline dark:text-indigo-300" href={`mailto:${SITE.contactEmail}`}>
+                  {SITE.contactEmail}
+                </a>
+              ) : (
+                <span className="text-slate-500 dark:text-slate-400">(not configured yet)</span>
+              )}
             </div>
-            <div className="mt-3 text-xs text-slate-500 dark:text-slate-400">
-              Replace this placeholder with a real inbox when ready (and update the site footer).
-            </div>
+            {!SITE.contactEmail ? (
+              <div className="mt-3 text-xs text-slate-500 dark:text-slate-400">
+                Set <span className="font-mono">NEXT_PUBLIC_CONTACT_EMAIL</span> to enable an inbox on this page.
+              </div>
+            ) : null}
           </div>
         </section>
 
