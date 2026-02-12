@@ -9,6 +9,10 @@ type SeriesResponse = {
   points: Point[];
 };
 
+// Client-side memoization so rapid scrollytelling doesn't spam /api/market.
+const seriesCache = new Map<string, SeriesResponse>();
+const inflight = new Map<string, Promise<SeriesResponse>>();
+
 function clamp(n: number, min: number, max: number) {
   return Math.max(min, Math.min(max, n));
 }
@@ -57,6 +61,30 @@ async function fetchSeries(symbol: string, anchorDate: string) {
   return (await res.json()) as SeriesResponse;
 }
 
+async function fetchSeriesCached(symbol: string, anchorDate: string) {
+  const key = `${symbol}::${anchorDate}`;
+
+  const cached = seriesCache.get(key);
+  if (cached) return cached;
+
+  const existing = inflight.get(key);
+  if (existing) return existing;
+
+  const p = fetchSeries(symbol, anchorDate)
+    .then((series) => {
+      seriesCache.set(key, series);
+      inflight.delete(key);
+      return series;
+    })
+    .catch((err) => {
+      inflight.delete(key);
+      throw err;
+    });
+
+  inflight.set(key, p);
+  return p;
+}
+
 type Props = {
   anchorDate: string; // YYYY-MM-DD
 };
@@ -68,21 +96,25 @@ export function MarketMiniChart({ anchorDate }: Props) {
   useEffect(() => {
     let cancelled = false;
 
-    Promise.all([fetchSeries('^spx', anchorDate), fetchSeries('^vix', anchorDate)])
-      .then(([a, b]) => {
-        if (cancelled) return;
-        setSpx({ anchorDate, series: a });
-        setVix({ anchorDate, series: b });
-      })
-      .catch(() => {
-        // Graceful fallback: keep the UI interactive even if /api/market isn't implemented yet.
-        if (cancelled) return;
-        setSpx({ anchorDate, series: mockSeries('^spx', anchorDate) });
-        setVix({ anchorDate, series: mockSeries('^vix', anchorDate) });
-      });
+    // Small debounce so quick scroll bursts only fetch the final anchor.
+    const t = window.setTimeout(() => {
+      Promise.all([fetchSeriesCached('^spx', anchorDate), fetchSeriesCached('^vix', anchorDate)])
+        .then(([a, b]) => {
+          if (cancelled) return;
+          setSpx({ anchorDate, series: a });
+          setVix({ anchorDate, series: b });
+        })
+        .catch(() => {
+          // Graceful fallback: keep the UI interactive even if the API/provider is down.
+          if (cancelled) return;
+          setSpx({ anchorDate, series: mockSeries('^spx', anchorDate) });
+          setVix({ anchorDate, series: mockSeries('^vix', anchorDate) });
+        });
+    }, 120);
 
     return () => {
       cancelled = true;
+      window.clearTimeout(t);
     };
   }, [anchorDate]);
 
