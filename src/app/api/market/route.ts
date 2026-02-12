@@ -62,12 +62,36 @@ export async function GET(req: Request) {
 
   let points = await readWindow();
 
-  // If we have fewer than 2 points (or nothing), refresh cache from the free provider.
-  // We also widen the import range a bit to handle weekends/holidays around the anchor.
+  function parseISO(s: string): Date | null {
+    return parseISODate(s);
+  }
+
+  function hasReasonableCoverage() {
+    if (points.length < 2) return false;
+
+    const first = parseISO(points[0]?.date ?? '');
+    const last = parseISO(points[points.length - 1]?.date ?? '');
+    if (!first || !last) return false;
+
+    // We don't expect to have rows for weekends/holidays, so allow a small slack.
+    const startSlack = addDays(start, 2);
+    const endSlack = addDays(end, -2);
+
+    if (first > startSlack) return false;
+    if (last < endSlack) return false;
+
+    const minPoints = Math.min(days, 5);
+    if (points.length < minPoints) return false;
+
+    return true;
+  }
+
+  // If we have insufficient coverage, refresh cache from the free provider.
+  // We widen the import range to handle weekends/holidays around the anchor.
   //
   // Guardrail: only refetch if we haven't updated this symbol recently, to avoid a thundering herd
   // during deploys / traffic spikes.
-  if (points.length < 2) {
+  if (!hasReasonableCoverage()) {
     const lastUpdate = await prisma.marketDaily.aggregate({
       where: { symbol },
       _max: { updatedAt: true },
