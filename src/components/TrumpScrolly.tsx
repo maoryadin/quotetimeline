@@ -10,7 +10,19 @@ type Props = {
 };
 
 export function TrumpScrolly({ quotes }: Props) {
-  const [activeId, setActiveId] = useState<string | null>(quotes[0]?.id ?? null);
+  const [activeId, setActiveId] = useState<string | null>(() => {
+    const first = quotes[0]?.id ?? null;
+    if (!first) return null;
+    if (typeof window === 'undefined') return first;
+
+    const hash = window.location.hash.replace(/^#/, '');
+    const slug = hash.startsWith('q=') ? hash.slice(2) : hash.startsWith('quote-') ? hash.slice('quote-'.length) : '';
+    if (!slug) return first;
+
+    const target = quotes.find((q) => q.slug === slug);
+    return target?.id ?? first;
+  });
+
   const rootRef = useRef<HTMLDivElement | null>(null);
   const feedRef = useRef<HTMLDivElement | null>(null);
 
@@ -18,6 +30,43 @@ export function TrumpScrolly({ quotes }: Props) {
     const q = quotes.find((x) => x.id === activeId);
     return q ?? quotes[0] ?? null;
   }, [activeId, quotes]);
+
+  // Keep the URL hash in sync with the active quote so scrolly positions are shareable.
+  useEffect(() => {
+    if (!activeQuote) return;
+    const next = `#q=${encodeURIComponent(activeQuote.slug)}`;
+    if (window.location.hash !== next) {
+      window.history.replaceState(null, '', next);
+    }
+  }, [activeQuote]);
+
+  const [isDesktop, setIsDesktop] = useState(false);
+
+  useEffect(() => {
+    const mq = window.matchMedia('(min-width: 1024px)');
+    const onChange = () => setIsDesktop(mq.matches);
+    onChange();
+    mq.addEventListener('change', onChange);
+    return () => mq.removeEventListener('change', onChange);
+  }, []);
+
+  // If the page loads with a hash, scroll that quote into view inside the feed.
+  useEffect(() => {
+    const feed = feedRef.current;
+    if (!feed || !quotes.length) return;
+
+    const hash = window.location.hash.replace(/^#/, '');
+    const slug = hash.startsWith('q=') ? hash.slice(2) : hash.startsWith('quote-') ? hash.slice('quote-'.length) : '';
+    if (!slug) return;
+
+    const target = quotes.find((q) => q.slug === slug);
+    if (!target) return;
+
+    requestAnimationFrame(() => {
+      const el = feed.querySelector<HTMLElement>(`[data-quote-id="${target.id}"]`);
+      el?.scrollIntoView({ block: 'center' });
+    });
+  }, [quotes, isDesktop]);
 
   useEffect(() => {
     const root = rootRef.current;
@@ -30,8 +79,6 @@ export function TrumpScrolly({ quotes }: Props) {
     // IntersectionObserver callbacks only include entries that changed.
     // To reliably pick the "active" card, keep our own visibility cache.
     const state = new Map<string, IntersectionObserverEntry>();
-
-    const isDesktop = window.matchMedia('(min-width: 1024px)').matches;
 
     const pickActive = () => {
       const centerY = isDesktop
@@ -69,7 +116,7 @@ export function TrumpScrolly({ quotes }: Props) {
         // On mobile, fall back to the viewport as the scroll container.
         root: isDesktop ? feed : null,
         // Trigger when the card crosses the middle-ish of the scroll container.
-        rootMargin: '-40% 0px -45% 0px',
+        rootMargin: isDesktop ? '-40% 0px -45% 0px' : '-35% 0px -55% 0px',
         threshold: [0, 0.1, 0.25, 0.5, 0.75, 1],
       },
     );
@@ -77,7 +124,7 @@ export function TrumpScrolly({ quotes }: Props) {
     for (const el of cards) obs.observe(el);
 
     return () => obs.disconnect();
-  }, [quotes]);
+  }, [quotes, isDesktop]);
 
   if (!quotes.length) {
     return <div className="text-sm text-slate-600 dark:text-slate-300">No quotes yet.</div>;
@@ -122,6 +169,7 @@ export function TrumpScrolly({ quotes }: Props) {
           return (
             <article
               key={q.id}
+              id={`quote-${q.slug}`}
               data-quote-id={q.id}
               className={
                 'rounded-2xl border bg-white/60 p-5 shadow-sm transition-colors dark:bg-black/20 ' +

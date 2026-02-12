@@ -52,7 +52,14 @@ export function SiteHeader() {
 
         <nav className="flex max-w-[65vw] items-center gap-1 overflow-x-auto whitespace-nowrap text-sm sm:max-w-none sm:gap-2">
           <Link href="/" aria-current={isActive('/') ? 'page' : undefined} className={navLinkClass(isActive('/'))}>
-            Trump timeline
+            Timeline
+          </Link>
+          <Link
+            href="/story"
+            aria-current={isActive('/story') ? 'page' : undefined}
+            className={navLinkClass(isActive('/story'))}
+          >
+            Story mode
           </Link>
           <Link
             href="/topics"
