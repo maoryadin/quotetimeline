@@ -34,7 +34,7 @@ function mockSeries(symbol: string, anchorDate: string): SeriesResponse {
   // Deterministic mock so UI works even before the real market cache is wired.
   // (This also serves as a graceful fallback if the free provider is down.)
   const seed = Array.from(`${symbol}:${anchorDate}`).reduce((acc, ch) => acc + ch.charCodeAt(0), 0);
-  const base = symbol.includes('vxx') ? 18 : symbol.includes('spx') ? 6800 : 470;
+  const base = symbol.includes('vix') ? 18 : symbol.includes('vxx') ? 18 : symbol.includes('spx') ? 6800 : 470;
 
   const points: Point[] = [];
   for (let i = -3; i <= 3; i++) {
@@ -63,22 +63,22 @@ type Props = {
 
 export function MarketMiniChart({ anchorDate }: Props) {
   const [spx, setSpx] = useState<{ anchorDate: string; series: SeriesResponse } | null>(null);
-  const [vxx, setVxx] = useState<{ anchorDate: string; series: SeriesResponse } | null>(null);
+  const [vix, setVix] = useState<{ anchorDate: string; series: SeriesResponse } | null>(null);
 
   useEffect(() => {
     let cancelled = false;
 
-    Promise.all([fetchSeries('^spx', anchorDate), fetchSeries('vxx.us', anchorDate)])
+    Promise.all([fetchSeries('^spx', anchorDate), fetchSeries('^vix', anchorDate)])
       .then(([a, b]) => {
         if (cancelled) return;
         setSpx({ anchorDate, series: a });
-        setVxx({ anchorDate, series: b });
+        setVix({ anchorDate, series: b });
       })
       .catch(() => {
         // Graceful fallback: keep the UI interactive even if /api/market isn't implemented yet.
         if (cancelled) return;
         setSpx({ anchorDate, series: mockSeries('^spx', anchorDate) });
-        setVxx({ anchorDate, series: mockSeries('vxx.us', anchorDate) });
+        setVix({ anchorDate, series: mockSeries('^vix', anchorDate) });
       });
 
     return () => {
@@ -102,13 +102,13 @@ export function MarketMiniChart({ anchorDate }: Props) {
 
     return {
       spx: mk(spx),
-      vxx: mk(vxx),
+      vix: mk(vix),
       width,
       height,
     };
-  }, [spx, vxx, anchorDate]);
+  }, [spx, vix, anchorDate]);
 
-  if (!charts.spx.ready || !charts.vxx.ready) {
+  if (!charts.spx.ready || !charts.vix.ready) {
     return (
       <div className="space-y-4" aria-busy="true" aria-live="polite">
         <div className="animate-pulse">
@@ -146,11 +146,11 @@ export function MarketMiniChart({ anchorDate }: Props) {
 
       <div>
         <div className="flex items-baseline justify-between">
-          <div className="text-xs font-medium text-slate-700 dark:text-slate-200">VIX proxy (VXX)</div>
-          <div className="text-[11px] text-slate-500 dark:text-slate-400">{charts.vxx.last?.toFixed(2)}</div>
+          <div className="text-xs font-medium text-slate-700 dark:text-slate-200">VIX</div>
+          <div className="text-[11px] text-slate-500 dark:text-slate-400">{charts.vix.last?.toFixed(2)}</div>
         </div>
         <svg viewBox={`0 0 ${charts.width} ${charts.height}`} className="mt-2 h-20 w-full">
-          <polyline fill="none" strokeWidth="2" stroke="currentColor" className="text-fuchsia-600" points={charts.vxx.polyline} />
+          <polyline fill="none" strokeWidth="2" stroke="currentColor" className="text-fuchsia-600" points={charts.vix.polyline} />
         </svg>
       </div>
 

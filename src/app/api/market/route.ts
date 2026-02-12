@@ -21,7 +21,7 @@ function addDays(d: Date, days: number) {
   return x;
 }
 
-const ALLOWED_SYMBOLS = new Set(['spy.us', '^spx', 'vxx.us']);
+const ALLOWED_SYMBOLS = new Set(['spy.us', '^spx', '^vix', 'vxx.us']);
 
 export async function GET(req: Request) {
   const url = new URL(req.url);
