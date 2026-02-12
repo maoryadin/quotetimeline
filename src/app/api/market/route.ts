@@ -64,43 +64,56 @@ export async function GET(req: Request) {
 
   // If we have fewer than 2 points (or nothing), refresh cache from the free provider.
   // We also widen the import range a bit to handle weekends/holidays around the anchor.
+  //
+  // Guardrail: only refetch if we haven't updated this symbol recently, to avoid a thundering herd
+  // during deploys / traffic spikes.
   if (points.length < 2) {
-    const importStart = addDays(start, -10);
-    const importEnd = addDays(end, 10);
-
-    const series = await fetchStooqDailyCloses(symbol);
-    const slice = series.filter((p) => {
-      const d = parseISODate(p.date);
-      if (!d) return false;
-      return d >= importStart && d <= importEnd;
+    const lastUpdate = await prisma.marketDaily.aggregate({
+      where: { symbol },
+      _max: { updatedAt: true },
     });
 
-    if (slice.length) {
-      await prisma.$transaction(
-        slice.map((p) =>
-          prisma.marketDaily.upsert({
-            where: {
-              symbol_date: {
+    const last = lastUpdate._max.updatedAt;
+    const recentlyUpdated = last ? Date.now() - last.getTime() < 6 * 60 * 60 * 1000 : false;
+
+    if (!recentlyUpdated) {
+      const importStart = addDays(start, -10);
+      const importEnd = addDays(end, 10);
+
+      const series = await fetchStooqDailyCloses(symbol);
+      const slice = series.filter((p) => {
+        const d = parseISODate(p.date);
+        if (!d) return false;
+        return d >= importStart && d <= importEnd;
+      });
+
+      if (slice.length) {
+        await prisma.$transaction(
+          slice.map((p) =>
+            prisma.marketDaily.upsert({
+              where: {
+                symbol_date: {
+                  symbol,
+                  date: new Date(`${p.date}T00:00:00Z`),
+                },
+              },
+              create: {
                 symbol,
                 date: new Date(`${p.date}T00:00:00Z`),
+                close: p.close,
+                provider: 'stooq',
               },
-            },
-            create: {
-              symbol,
-              date: new Date(`${p.date}T00:00:00Z`),
-              close: p.close,
-              provider: 'stooq',
-            },
-            update: {
-              close: p.close,
-              provider: 'stooq',
-            },
-          }),
-        ),
-      );
-    }
+              update: {
+                close: p.close,
+                provider: 'stooq',
+              },
+            }),
+          ),
+        );
+      }
 
-    points = await readWindow();
+      points = await readWindow();
+    }
   }
 
   // If still empty (e.g., provider down), return empty series; the client has a graceful fallback.
