@@ -155,7 +155,7 @@ export function TrumpScrolly({ quotes }: Props) {
           </div>
 
           <div className="mt-4 text-xs text-slate-500 dark:text-slate-400">
-            Data note: MVP uses free market proxies (SPY, VXX) and caches daily points in Postgres.
+            Data note: MVP uses free market data (SPX, VXX proxy) and caches daily points in Postgres.
           </div>
         </div>
       </aside>
