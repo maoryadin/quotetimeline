@@ -86,7 +86,12 @@ export function TrumpScrolly({ quotes }: Props) {
     // To reliably pick the "active" card, keep our own visibility cache.
     const state = new Map<string, IntersectionObserverEntry>();
 
+    // Throttle "pick active" to animation frames to avoid doing layout work for every IO callback.
+    let raf: number | null = null;
+
     const pickActive = () => {
+      raf = null;
+
       const centerY = isDesktop
         ? (() => {
             const feedRect = feed.getBoundingClientRect();
@@ -105,7 +110,14 @@ export function TrumpScrolly({ quotes }: Props) {
         .sort((a, b) => a.distance - b.distance);
 
       const best = visible[0];
-      if (best?.id) setActiveId(best.id);
+      if (!best?.id) return;
+
+      setActiveId((prev) => (prev === best.id ? prev : best.id));
+    };
+
+    const schedulePickActive = () => {
+      if (raf != null) return;
+      raf = window.requestAnimationFrame(pickActive);
     };
 
     const obs = new IntersectionObserver(
@@ -115,7 +127,7 @@ export function TrumpScrolly({ quotes }: Props) {
           if (!id) continue;
           state.set(id, e);
         }
-        pickActive();
+        schedulePickActive();
       },
       {
         // On desktop, the quote feed scrolls independently so the market panel can stay sticky.
@@ -129,7 +141,10 @@ export function TrumpScrolly({ quotes }: Props) {
 
     for (const el of cards) obs.observe(el);
 
-    return () => obs.disconnect();
+    return () => {
+      if (raf != null) window.cancelAnimationFrame(raf);
+      obs.disconnect();
+    };
   }, [quotes, isDesktop]);
 
   if (!quotes.length) {
@@ -138,8 +153,8 @@ export function TrumpScrolly({ quotes }: Props) {
 
   return (
     <div className="grid grid-cols-1 gap-6 lg:grid-cols-[360px_1fr]" ref={rootRef}>
-      <aside className="order-2 lg:order-1 lg:sticky lg:top-24 lg:h-[calc(100vh-7rem)]">
-        <div className="h-full rounded-2xl border border-slate-200/70 bg-white/60 p-5 shadow-sm dark:border-white/10 dark:bg-black/20">
+      <aside className="order-1 sticky top-24 lg:order-1 lg:top-24 lg:h-[calc(100vh-7rem)]">
+        <div className="rounded-2xl border border-slate-200/70 bg-white/60 p-5 shadow-sm lg:h-full dark:border-white/10 dark:bg-black/20">
           <div className="text-xs font-medium uppercase tracking-wide text-slate-500 dark:text-slate-400">Market window</div>
           <div className="mt-2 text-sm text-slate-700 dark:text-slate-200">
             {activeQuote ? (
@@ -168,7 +183,7 @@ export function TrumpScrolly({ quotes }: Props) {
 
       <div
         ref={feedRef}
-        className="order-1 space-y-3 lg:order-2 lg:h-[calc(100vh-7rem)] lg:overflow-y-auto lg:pr-2"
+        className="order-2 space-y-3 lg:order-2 lg:h-[calc(100vh-7rem)] lg:overflow-y-auto lg:pr-2 lg:[scrollbar-gutter:stable]"
       >
         {quotes.map((q) => {
           const isActive = q.id === activeId;
@@ -185,12 +200,19 @@ export function TrumpScrolly({ quotes }: Props) {
               }
             >
               <div className="space-y-3">
-                <Link href={`/quote/${q.slug}`} className="block">
+                <Link
+                  href={`/quote/${q.slug}`}
+                  className="block"
+                  aria-current={isActive ? 'true' : undefined}
+                >
                   <div className="flex items-baseline justify-between gap-3">
                     <div className="text-xs text-slate-500 dark:text-slate-400">{q.date}</div>
                     <div className="text-xs text-slate-500 dark:text-slate-400">{q.source.publisher ?? 'Source'}</div>
                   </div>
-                  <div className="mt-2 text-base leading-snug text-slate-900 dark:text-slate-100">“{q.text}”</div>
+                  <div className="mt-2 text-base leading-snug text-slate-900 dark:text-slate-100">
+                    “{q.text}”
+                    {isActive ? <span className="sr-only"> (active)</span> : null}
+                  </div>
                   {q.context ? (
                     <div className="mt-2 line-clamp-2 text-sm text-slate-600 dark:text-slate-300">{q.context}</div>
                   ) : null}
@@ -199,6 +221,7 @@ export function TrumpScrolly({ quotes }: Props) {
                 <div className="flex items-center justify-between gap-3">
                   <a
                     href={`#q=${encodeURIComponent(q.slug)}`}
+                    aria-label={`Deep link to quote from ${q.date}`}
                     className="text-[11px] font-medium text-slate-500 hover:text-slate-700 hover:underline dark:text-slate-400 dark:hover:text-slate-200"
                   >
                     Deep link
