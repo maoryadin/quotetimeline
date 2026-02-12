@@ -22,7 +22,7 @@ export type QuoteView = {
 
 export const SITE = {
   name: 'QuoteTimeline',
-  description: 'Trump quotes with dates, sources, and context.',
+  description: 'Trump-first quote timeline with dates and primary sources.',
 };
 
 export const slugifyQuote = (text: string, date: string) => {

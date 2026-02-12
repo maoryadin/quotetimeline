@@ -2,7 +2,7 @@ export const dynamic = 'force-dynamic';
 
 import type { Metadata } from 'next';
 import Link from 'next/link';
-import { notFound } from 'next/navigation';
+import { notFound, redirect } from 'next/navigation';
 import { SiteFooter } from '@/components/SiteFooter';
 import { SiteHeader } from '@/components/SiteHeader';
 import { getPersonBySlug, getQuoteCountByPerson, getQuotesByPerson, getTopTopicsByPerson } from '@/lib/data';
@@ -12,10 +12,22 @@ type Props = {
   searchParams?: Promise<{ page?: string }>;
 };
 
+const TRUMP_SLUG = 'donald-trump';
+
 export async function generateMetadata({ params, searchParams }: Props): Promise<Metadata> {
   const { person } = await params;
   const sp = (await searchParams) ?? {};
   const page = toPage(sp.page);
+
+  // UX pivot: we are Trump-first for now.
+  if (person !== TRUMP_SLUG) {
+    const base = process.env.NEXT_PUBLIC_SITE_URL ?? 'http://localhost:3000';
+    return {
+      title: 'QuoteTimeline',
+      alternates: { canonical: `${base}/` },
+      robots: { index: false, follow: true },
+    };
+  }
 
   const p = await getPersonBySlug(person);
   if (!p) return { title: 'Person not found | QuoteTimeline' };
@@ -44,6 +56,12 @@ function toPage(s: string | undefined) {
 
 export default async function PersonPage({ params, searchParams }: Props) {
   const { person } = await params;
+
+  // UX pivot: keep the route around for backwards compat, but focus the product on Trump.
+  if (person !== TRUMP_SLUG) {
+    redirect('/');
+  }
+
   const sp = (await searchParams) ?? {};
   const page = toPage(sp.page);
 
