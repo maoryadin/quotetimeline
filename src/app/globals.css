@@ -33,3 +33,13 @@ body {
 a {
   text-underline-offset: 3px;
 }
+
+/* Hide scrollbars for small horizontal navs (mobile polish). */
+.no-scrollbar {
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* IE/Edge legacy */
+}
+
+.no-scrollbar::-webkit-scrollbar {
+  display: none; /* Chrome/Safari */
+}
