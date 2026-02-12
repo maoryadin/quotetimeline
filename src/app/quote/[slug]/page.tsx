@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { SiteFooter } from '@/components/SiteFooter';
 import { SiteHeader } from '@/components/SiteHeader';
-import { getPersonBySlug, getQuoteBySlug, getRelatedQuotes, getTopics } from '@/lib/data';
+import { getPersonBySlug, getQuoteBySlug, getRelatedQuotes } from '@/lib/data';
 
 type Props = { params: Promise<{ slug: string }> };
 
@@ -48,11 +48,7 @@ export default async function QuotePage({ params }: Props) {
   const q = await getQuoteBySlug(slug);
   if (!q) return notFound();
 
-  const [related, topics, person] = await Promise.all([
-    getRelatedQuotes(slug, 8),
-    getTopics(),
-    getPersonBySlug(q.personSlug),
-  ]);
+  const [related, person] = await Promise.all([getRelatedQuotes(slug, 8), getPersonBySlug(q.personSlug)]);
 
   const base = process.env.NEXT_PUBLIC_SITE_URL ?? 'http://localhost:3000';
   const canonicalUrl = `${base}/quote/${q.slug}`;
@@ -71,12 +67,11 @@ export default async function QuotePage({ params }: Props) {
       url: `${base}/person/${q.personSlug}`,
     },
     isBasedOn: q.source.url,
-    about: q.topics.map((tSlug) => {
-      const t = topics.find((x) => x.slug === tSlug);
+    about: q.topics.map((t) => {
       return {
         '@type': 'Thing',
-        name: t?.name ?? tSlug,
-        url: `${base}/topic/${tSlug}`,
+        name: t.name,
+        url: `${base}/topic/${t.slug}`,
       };
     }),
   };
@@ -131,18 +126,15 @@ export default async function QuotePage({ params }: Props) {
           <div className="mt-6">
             <div className="text-xs font-medium uppercase tracking-wide text-slate-500 dark:text-slate-400">Topics</div>
             <div className="mt-3 flex flex-wrap gap-2">
-              {q.topics.map((tSlug) => {
-                const t = topics.find((x) => x.slug === tSlug);
-                return (
-                  <Link
-                    key={tSlug}
-                    className="rounded-full border border-slate-200 bg-white/80 px-3 py-1 text-xs text-slate-900 hover:bg-white dark:border-white/10 dark:bg-black/20 dark:text-slate-100"
-                    href={`/topic/${tSlug}`}
-                  >
-                    {t?.name ?? tSlug}
-                  </Link>
-                );
-              })}
+              {q.topics.map((t) => (
+                <Link
+                  key={t.slug}
+                  className="rounded-full border border-slate-200 bg-white/80 px-3 py-1 text-xs text-slate-900 hover:bg-white dark:border-white/10 dark:bg-black/20 dark:text-slate-100"
+                  href={`/topic/${t.slug}`}
+                >
+                  {t.name}
+                </Link>
+              ))}
             </div>
           </div>
         </article>

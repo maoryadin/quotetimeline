@@ -17,7 +17,7 @@ export type QuoteView = {
   date: string; // YYYY-MM-DD
   context?: string | null;
   source: QuoteSource;
-  topics: string[];
+  topics: Array<{ slug: string; name: string }>;
 };
 
 export const SITE = {
@@ -47,7 +47,7 @@ function mapQuote(q: {
   context: string | null;
   person: { slug: string };
   source: { type: SourceType; title: string; url: string; publisher: string | null };
-  topics: Array<{ topic: { slug: string } }>;
+  topics: Array<{ topic: { slug: string; name: string } }>;
 }): QuoteView {
   return {
     id: q.id,
@@ -62,7 +62,7 @@ function mapQuote(q: {
       url: q.source.url,
       publisher: q.source.publisher,
     },
-    topics: q.topics.map((t) => t.topic.slug),
+    topics: q.topics.map((t) => ({ slug: t.topic.slug, name: t.topic.name })), 
   };
 }
 
@@ -133,7 +133,7 @@ export const getLatestQuotes = cache(async (limit: number) => {
     include: {
       person: { select: { slug: true } },
       source: { select: { type: true, title: true, url: true, publisher: true } },
-      topics: { include: { topic: { select: { slug: true } } } },
+      topics: { include: { topic: { select: { slug: true, name: true } } } },
     },
   });
   return quotes.map(mapQuote);
@@ -177,7 +177,7 @@ export const getQuotesByPerson = cache(async (personSlug: string, pagination: Pa
     include: {
       person: { select: { slug: true } },
       source: { select: { type: true, title: true, url: true, publisher: true } },
-      topics: { include: { topic: { select: { slug: true } } } },
+      topics: { include: { topic: { select: { slug: true, name: true } } } },
     },
   });
   return quotes.map(mapQuote);
@@ -195,7 +195,7 @@ export const getQuotesByTopic = cache(async (topicSlug: string, pagination: Pagi
     include: {
       person: { select: { slug: true } },
       source: { select: { type: true, title: true, url: true, publisher: true } },
-      topics: { include: { topic: { select: { slug: true } } } },
+      topics: { include: { topic: { select: { slug: true, name: true } } } },
     },
   });
   return quotes.map(mapQuote);
@@ -207,7 +207,7 @@ export const getQuoteBySlug = cache(async (slug: string) => {
     include: {
       person: { select: { slug: true } },
       source: { select: { type: true, title: true, url: true, publisher: true } },
-      topics: { include: { topic: { select: { slug: true } } } },
+      topics: { include: { topic: { select: { slug: true, name: true } } } },
     },
   });
   return q ? mapQuote(q) : null;
@@ -235,7 +235,7 @@ export const getRelatedQuotes = cache(async (quoteSlug: string, limit: number) =
     include: {
       person: { select: { slug: true } },
       source: { select: { type: true, title: true, url: true, publisher: true } },
-      topics: { include: { topic: { select: { slug: true } } } },
+      topics: { include: { topic: { select: { slug: true, name: true } } } },
     },
   });
 
@@ -282,7 +282,7 @@ export const searchQuotes = cache(async (query: string) => {
     include: {
       person: { select: { slug: true } },
       source: { select: { type: true, title: true, url: true, publisher: true } },
-      topics: { include: { topic: { select: { slug: true } } } },
+      topics: { include: { topic: { select: { slug: true, name: true } } } },
     },
   });
 

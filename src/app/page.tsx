@@ -133,16 +133,32 @@ export default async function Home({ searchParams }: Props) {
                     key={q.id}
                     className="rounded-2xl border border-slate-200/70 bg-white/60 p-5 shadow-sm hover:bg-white dark:border-white/10 dark:bg-black/20"
                   >
-                    <Link href={`/quote/${q.slug}`} className="block">
-                      <div className="flex items-baseline justify-between gap-3">
-                        <div className="text-xs text-slate-500 dark:text-slate-400">{q.date}</div>
-                        <div className="text-xs text-slate-500 dark:text-slate-400">{q.source.publisher ?? 'Source'}</div>
-                      </div>
-                      <div className="mt-2 text-base leading-snug text-slate-900 dark:text-slate-100">“{q.text}”</div>
-                      {q.context ? (
-                        <div className="mt-2 line-clamp-2 text-sm text-slate-600 dark:text-slate-300">{q.context}</div>
+                    <div className="space-y-3">
+                      <Link href={`/quote/${q.slug}`} className="block">
+                        <div className="flex items-baseline justify-between gap-3">
+                          <div className="text-xs text-slate-500 dark:text-slate-400">{q.date}</div>
+                          <div className="text-xs text-slate-500 dark:text-slate-400">{q.source.publisher ?? 'Source'}</div>
+                        </div>
+                        <div className="mt-2 text-base leading-snug text-slate-900 dark:text-slate-100">“{q.text}”</div>
+                        {q.context ? (
+                          <div className="mt-2 line-clamp-2 text-sm text-slate-600 dark:text-slate-300">{q.context}</div>
+                        ) : null}
+                      </Link>
+
+                      {q.topics.length ? (
+                        <div className="flex flex-wrap gap-2">
+                          {q.topics.slice(0, 3).map((t) => (
+                            <Link
+                              key={t.slug}
+                              href={`/topic/${t.slug}`}
+                              className="rounded-full border border-slate-200/70 bg-white/70 px-2 py-0.5 text-[11px] text-slate-700 hover:bg-white dark:border-white/10 dark:bg-black/20 dark:text-slate-200"
+                            >
+                              {t.name}
+                            </Link>
+                          ))}
+                        </div>
                       ) : null}
-                    </Link>
+                    </div>
                   </li>
                 ))}
               </ul>
