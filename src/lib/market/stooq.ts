@@ -1,4 +1,4 @@
-export type MarketPoint = { date: string; close: number };
+import type { MarketPoint } from './core';
 
 function parseCsv(text: string): Array<Record<string, string>> {
   const lines = text
@@ -42,8 +42,8 @@ export async function fetchStooqDailyCloses(symbol: string): Promise<MarketPoint
   for (const r of rows) {
     const date = r['Date'];
     const close = Number(r['Close']);
-    if (!date || !Number.isFinite(close)) continue;
-    points.push({ date, close });
+    if (!date || !/^\d{4}-\d{2}-\d{2}$/.test(date) || !Number.isFinite(close)) continue;
+    points.push({ date: date as MarketPoint['date'], close });
   }
 
   return points;

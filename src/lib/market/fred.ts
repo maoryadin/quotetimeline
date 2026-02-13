@@ -1,4 +1,4 @@
-export type MarketPoint = { date: string; close: number };
+import type { MarketPoint } from './core';
 
 function parseFredCsv(text: string): MarketPoint[] {
   const lines = text
@@ -21,11 +21,11 @@ function parseFredCsv(text: string): MarketPoint[] {
     const cols = line.split(',').map((c) => c.trim());
     const date = cols[dateIdx];
     const raw = cols[valueIdx];
-    if (!date || !raw || raw === '.') continue;
+    if (!date || !/^\d{4}-\d{2}-\d{2}$/.test(date) || !raw || raw === '.') continue;
 
     const close = Number(raw);
     if (!Number.isFinite(close)) continue;
-    points.push({ date, close });
+    points.push({ date: date as MarketPoint['date'], close });
   }
 
   return points;

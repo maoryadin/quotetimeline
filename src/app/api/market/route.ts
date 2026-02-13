@@ -2,25 +2,12 @@ import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
 import { fetchStooqDailyCloses } from '@/lib/market/stooq';
 import { fetchFreDDailyCloses } from '@/lib/market/fred';
-
-function parseISODate(s: string | null): Date | null {
-  if (!s) return null;
-  // Expect YYYY-MM-DD
-  if (!/^\d{4}-\d{2}-\d{2}$/.test(s)) return null;
-  const d = new Date(`${s}T00:00:00Z`);
-  if (Number.isNaN(d.getTime())) return null;
-  return d;
-}
-
-function toISO(d: Date) {
-  return d.toISOString().slice(0, 10);
-}
-
-function addDays(d: Date, days: number) {
-  const x = new Date(d);
-  x.setUTCDate(x.getUTCDate() + days);
-  return x;
-}
+import {
+  addDaysUTC,
+  isoDateToUTCDate,
+  parseISODateString,
+  toISODateString,
+} from '@/lib/market/core';
 
 const ALLOWED_SYMBOLS = new Set(['spy.us', '^spx', '^vix', 'vxx.us']);
 
@@ -43,7 +30,7 @@ export async function GET(req: Request) {
     return NextResponse.json({ error: 'Unsupported symbol' }, { status: 400 });
   }
 
-  const anchor = parseISODate(url.searchParams.get('anchor'));
+  const anchor = parseISODateString(url.searchParams.get('anchor'));
   if (!anchor) {
     return NextResponse.json({ error: 'Invalid anchor date' }, { status: 400 });
   }
@@ -53,8 +40,8 @@ export async function GET(req: Request) {
 
   // Interpret "days" as a calendar window centered on the anchor.
   const half = Math.floor(days / 2);
-  const start = addDays(anchor, -half);
-  const end = addDays(anchor, half);
+  const start = addDaysUTC(anchor, -half);
+  const end = addDaysUTC(anchor, half);
 
   async function readWindow() {
     const rows = await prisma.marketDaily.findMany({
@@ -69,13 +56,13 @@ export async function GET(req: Request) {
       select: { date: true, close: true },
     });
 
-    return rows.map((r) => ({ date: toISO(r.date), close: r.close }));
+    return rows.map((r) => ({ date: toISODateString(r.date), close: r.close }));
   }
 
   let points = await readWindow();
 
   function parseISO(s: string): Date | null {
-    return parseISODate(s);
+    return parseISODateString(s);
   }
 
   function hasReasonableCoverage() {
@@ -86,8 +73,8 @@ export async function GET(req: Request) {
     if (!first || !last) return false;
 
     // We don't expect to have rows for weekends/holidays, so allow a small slack.
-    const startSlack = addDays(start, 2);
-    const endSlack = addDays(end, -2);
+    const startSlack = addDaysUTC(start, 2);
+    const endSlack = addDaysUTC(end, -2);
 
     if (first > startSlack) return false;
     if (last < endSlack) return false;
@@ -113,8 +100,8 @@ export async function GET(req: Request) {
     const recentlyUpdated = last ? Date.now() - last.getTime() < 6 * 60 * 60 * 1000 : false;
 
     if (!recentlyUpdated) {
-      const importStart = addDays(start, -10);
-      const importEnd = addDays(end, 10);
+      const importStart = addDaysUTC(start, -10);
+      const importEnd = addDaysUTC(end, 10);
 
       const mapping = providerForSymbol(symbol);
 
@@ -124,7 +111,7 @@ export async function GET(req: Request) {
           : await fetchStooqDailyCloses(mapping.id);
 
       const slice = series.filter((p) => {
-        const d = parseISODate(p.date);
+        const d = parseISODateString(p.date);
         if (!d) return false;
         return d >= importStart && d <= importEnd;
       });
@@ -136,12 +123,12 @@ export async function GET(req: Request) {
               where: {
                 symbol_date: {
                   symbol,
-                  date: new Date(`${p.date}T00:00:00Z`),
+                  date: isoDateToUTCDate(p.date),
                 },
               },
               create: {
                 symbol,
-                date: new Date(`${p.date}T00:00:00Z`),
+                date: isoDateToUTCDate(p.date),
                 close: p.close,
                 provider: mapping.provider,
               },
