@@ -93,9 +93,27 @@ Notes:
 - It is designed to be **idempotent** (safe to rerun) and uses stable slugs (`stableQuoteSlug()` + collision guard).
 - The script prints a deterministic summary: new/updated/skipped + a short error list.
 
+## Market data (S&P 500 + VIX) caching
+
+The scrollytelling view shows a 7-day market window around the active quote.
+
+How it works:
+- Client calls `GET /api/market?symbol=^spx|^vix&anchor=YYYY-MM-DD&days=7`.
+- The API reads from `MarketDaily` (Postgres) first.
+- If the requested window is missing coverage, it refreshes from a free provider (FRED for `^spx`/`^vix`, Stooq for ETFs) and **upserts** daily closes into Postgres.
+- A Postgres advisory lock (`pg_try_advisory_lock(hashtext(symbol))`) prevents a thundering herd during cache misses.
+
+Warm the cache in advance (optional):
+
+```bash
+# Warm recent quote windows for SPX/VIX (reads anchor dates from Quote table)
+npm run market:warm-cache -- --symbol=^spx --days=7 --limit=200
+npm run market:warm-cache -- --symbol=^vix --days=7 --limit=200
+```
+
 ## Notes
 
-- The app now reads from Postgres (Prisma).
+- The app reads from Postgres (Prisma).
 - The seed imports a small, source-backed starter set from public-domain U.S. presidential inaugural address transcripts (Project Gutenberg #925).
 - Before publishing at scale, review sources/robots, add rate limiting, and store per-quote deep links (not just the index page).
 
