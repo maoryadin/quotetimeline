@@ -49,3 +49,28 @@ a {
 .no-scrollbar::-webkit-scrollbar {
   display: none; /* Chrome/Safari */
 }
+
+/* Subtle custom scrollbar for long vertical lists (desktop polish). */
+.qt-scrollbar {
+  scrollbar-width: thin; /* Firefox */
+  scrollbar-color: rgba(100, 116, 139, 0.45) transparent; /* thumb track */
+}
+
+.qt-scrollbar::-webkit-scrollbar {
+  width: 10px;
+}
+
+.qt-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.qt-scrollbar::-webkit-scrollbar-thumb {
+  background-color: rgba(100, 116, 139, 0.35);
+  border-radius: 999px;
+  border: 2px solid transparent;
+  background-clip: content-box;
+}
+
+.qt-scrollbar::-webkit-scrollbar-thumb:hover {
+  background-color: rgba(100, 116, 139, 0.55);
+}

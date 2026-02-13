@@ -15,10 +15,7 @@ function navLinkClass(active: boolean) {
     );
   }
 
-  return (
-    base +
-    ' text-slate-700 hover:bg-slate-100 dark:text-slate-200 dark:hover:bg-white/10'
-  );
+  return base + ' text-slate-700 hover:bg-slate-100 dark:text-slate-200 dark:hover:bg-white/10';
 }
 
 export function SiteHeader() {
@@ -43,10 +40,7 @@ export function SiteHeader() {
           href="/"
           className="group flex items-center gap-2 rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2 focus-visible:ring-offset-white dark:focus-visible:ring-offset-black"
         >
-          <div
-            aria-hidden="true"
-            className="h-9 w-9 rounded-xl bg-gradient-to-br from-indigo-600 to-fuchsia-600 shadow-sm"
-          />
+          <div aria-hidden="true" className="h-9 w-9 rounded-xl bg-gradient-to-br from-indigo-600 to-fuchsia-600 shadow-sm" />
           <div>
             <div className="text-sm font-semibold tracking-tight">{SITE.name}</div>
             <div className="text-xs text-slate-500 dark:text-slate-400">Trump quotes • dates • sources</div>
