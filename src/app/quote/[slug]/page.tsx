@@ -179,22 +179,32 @@ export default async function QuotePage({ params }: Props) {
 
         <section className="mt-10">
           <h2 className="text-lg font-semibold">Related</h2>
-          <ul className="mt-4 grid grid-cols-1 gap-3">
-            {related.map((r) => (
-              <li
-                key={r.id}
-                className="rounded-2xl border border-slate-200/70 bg-white/60 p-5 shadow-sm hover:bg-white focus-within:ring-2 focus-within:ring-indigo-500 focus-within:ring-offset-2 focus-within:ring-offset-white dark:border-white/10 dark:bg-black/20 dark:focus-within:ring-offset-black"
-              >
-                <Link href={`/quote/${r.slug}`} className="block">
-                  <div className="flex items-baseline justify-between gap-3">
-                    <div className="text-xs text-slate-500 dark:text-slate-400">{r.date}</div>
-                    <div className="text-xs text-slate-500 dark:text-slate-400">{r.source.publisher ?? 'Source'}</div>
-                  </div>
-                  <div className="mt-2 text-base leading-snug text-slate-900 dark:text-slate-100">“{r.text}”</div>
-                </Link>
-              </li>
-            ))}
-          </ul>
+
+          {related.length ? (
+            <ul className="mt-4 grid grid-cols-1 gap-3">
+              {related.map((r) => (
+                <li
+                  key={r.id}
+                  className="rounded-2xl border border-slate-200/70 bg-white/60 p-5 shadow-sm hover:bg-white focus-within:ring-2 focus-within:ring-indigo-500 focus-within:ring-offset-2 focus-within:ring-offset-white dark:border-white/10 dark:bg-black/20 dark:focus-within:ring-offset-black"
+                >
+                  <Link href={`/quote/${r.slug}`} className="block">
+                    <div className="flex items-baseline justify-between gap-3">
+                      <div className="text-xs text-slate-500 dark:text-slate-400">{r.date}</div>
+                      <div className="text-xs text-slate-500 dark:text-slate-400">{r.source.publisher ?? 'Source'}</div>
+                    </div>
+                    <div className="mt-2 text-base leading-snug text-slate-900 dark:text-slate-100">“{r.text}”</div>
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <div className="mt-4 rounded-2xl border border-slate-200/70 bg-white/60 p-6 text-sm text-slate-600 shadow-sm dark:border-white/10 dark:bg-black/20 dark:text-slate-300">
+              No related quotes yet.
+              <div className="mt-2 text-xs text-slate-500 dark:text-slate-400">
+                This section will populate as more quotes and topic tags are ingested.
+              </div>
+            </div>
+          )}
         </section>
 
         <SiteFooter />

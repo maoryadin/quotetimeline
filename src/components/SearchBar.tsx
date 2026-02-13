@@ -26,13 +26,13 @@ export function SearchBar({ initialQuery = '' }: { initialQuery?: string }) {
         placeholder="Search quotes, context, or source title…"
         aria-label="Search quotes"
         enterKeyHint="search"
-        className="h-11 w-full rounded-xl border border-slate-200 bg-white/80 px-4 text-sm outline-none ring-0 placeholder:text-slate-400 focus:border-indigo-400 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2 focus-visible:ring-offset-white dark:border-white/10 dark:bg-black/30 dark:text-slate-100 dark:focus-visible:ring-offset-black"
+        className="qt-focus h-11 w-full rounded-xl border border-slate-200 bg-white/80 px-4 text-sm outline-none ring-0 placeholder:text-slate-400 focus:border-indigo-400 dark:border-white/10 dark:bg-black/30 dark:text-slate-100"
         name="q"
       />
       <button
         type="submit"
         disabled={disabled}
-        className="h-11 shrink-0 rounded-xl bg-gradient-to-r from-indigo-600 to-fuchsia-600 px-4 text-sm font-medium text-white shadow-sm disabled:cursor-not-allowed disabled:opacity-40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2 focus-visible:ring-offset-white dark:focus-visible:ring-offset-black"
+        className="qt-focus h-11 shrink-0 rounded-xl bg-gradient-to-r from-indigo-600 to-fuchsia-600 px-4 text-sm font-medium text-white shadow-sm disabled:cursor-not-allowed disabled:opacity-40"
       >
         Search
       </button>

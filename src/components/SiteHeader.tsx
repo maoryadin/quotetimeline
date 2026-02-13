@@ -5,8 +5,7 @@ import { usePathname } from 'next/navigation';
 import { SITE } from '@/lib/data';
 
 function navLinkClass(active: boolean) {
-  const base =
-    'rounded-lg px-3 py-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2 focus-visible:ring-offset-white dark:focus-visible:ring-offset-black';
+  const base = 'rounded-lg px-3 py-2 qt-focus';
 
   if (active) {
     return (
@@ -31,14 +30,14 @@ export function SiteHeader() {
       <div className="mx-auto flex max-w-5xl items-center justify-between gap-4 px-4 py-3 sm:px-6 sm:py-4">
         <a
           href="#main"
-          className="sr-only rounded-lg bg-white px-3 py-2 text-sm text-slate-900 shadow-sm focus:not-sr-only focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2 focus-visible:ring-offset-white dark:bg-black dark:text-slate-100 dark:focus-visible:ring-offset-black"
+          className="sr-only rounded-lg bg-white px-3 py-2 text-sm text-slate-900 shadow-sm focus:not-sr-only qt-focus dark:bg-black dark:text-slate-100"
         >
           Skip to content
         </a>
 
         <Link
           href="/"
-          className="group flex items-center gap-2 rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2 focus-visible:ring-offset-white dark:focus-visible:ring-offset-black"
+          className="group flex items-center gap-2 rounded-lg qt-focus"
         >
           <div aria-hidden="true" className="h-9 w-9 rounded-xl bg-gradient-to-br from-indigo-600 to-fuchsia-600 shadow-sm" />
           <div>
