@@ -8,28 +8,34 @@ This backlog is ordered roughly by **impact → effort**.
    - Update nav + hero copy to be Trump-focused.
    - Acceptance: landing page has a clear “Trump timeline” promise + no dead links to multi-person features.
 
-2. **Scrollytelling timeline (sticky chart updates as you scroll)**
+2. **Content ingestion: first real Trump source (SEO engine)**
+   - Decision: start with **The American Presidency Project** transcript pages (good coverage + stable URLs).
+   - Implement ingest as an idempotent script (re-run safe) + document how to run it.
+   - Output should include: counts (new/updated/skipped), and a short list of errors.
+   - Acceptance: ingest produces 300+ quotes with stable slugs + primary source URLs.
+
+3. **Data correctness (ingestion hardening)**
+   - Enforce unique, stable slugs on ingest (collision handling; never overwrite a different quote).
+   - Validate `source.url` and `date` (fail fast on bad inputs; log row-level errors).
+   - Acceptance: re-running ingest on same input yields 0 duplicates and a deterministic summary.
+
+4. **SEO: quote page upgrades (high ROI)**
+   - Add schema.org structured data (Quote/Article) on `/quote/[slug]`.
+   - Add “Related quotes” internal links (same topic + same source).
+   - Acceptance: Rich Results Test passes; crawl finds internal links from quote pages.
+
+5. **Scrollytelling timeline (sticky chart updates as you scroll)**
    - Vertical feed of Trump quotes (cards).
    - One sticky chart that updates to the “active” card (IntersectionObserver).
    - Start with a 7-day window around the quote date.
    - Acceptance: scrolling through 20+ cards updates the chart with no jank (basic perf check in Lighthouse).
 
-3. **Content ingestion: first real Trump source (SEO engine)**
-   - Pick 1 canonical source to start (e.g., debate transcripts / White House archive / press briefings).
-   - Implement ingest as an idempotent script (re-run safe) + document how to run it.
-   - Output should include: counts (new/updated/skipped), and a short list of errors.
-   - Acceptance: ingest produces 100+ quotes with stable slugs + primary source URLs.
-
-4. **Market data MVP (free/low-cost)**
+6. **Market data MVP (free/low-cost)**
    - Add daily S&P 500 + VIX series for the 7-day window.
    - Cache results in DB (avoid calling provider on every request).
    - Acceptance: repeated requests for same window do 0 external API calls after first fetch.
 
-5. **Data correctness (ingestion hardening)**
-   - Enforce unique, stable slugs on ingest (collision handling; never overwrite a different quote).
-   - Validate `source.url` and `date` (fail fast on bad inputs; log row-level errors).
-
-6. **Information architecture polish (Trump-first)**
+7. **Information architecture polish (Trump-first)**
    - Filters: year, source type, topic (Trump feed + topic pages).
    - Pagination/infinite scroll on the main Trump feed.
 
@@ -39,15 +45,10 @@ This backlog is ordered roughly by **impact → effort**.
 - Added per-page `generateMetadata()` + canonical URLs.
 
 ## Soon
-7. **Market reaction: simple “before/after” metric (makes the charts meaningful)**
+8. **Market reaction: simple “before/after” metric (makes the charts meaningful)**
    - For each quote, compute & display: 1d and 7d % change (S&P) + VIX delta over the same window.
    - Define which day is “t=0” (quote date in ET vs UTC) and document it.
    - Acceptance: quote card shows a small, consistent summary (e.g., “S&P +0.8% (1d), +1.9% (7d); VIX -0.6 (7d)”).
-
-8. **SEO: quote page upgrades (high ROI)**
-   - Add schema.org structured data (Quote/Article) on `/quote/[slug]`.
-   - Add “Related quotes” internal links (same topic + same source).
-   - Acceptance: Rich Results Test passes; crawl finds internal links from quote pages.
 
 9. **Search improvements (performance + relevance)**
    - Option A: Postgres FTS (tsvector) on Quote.text/context + Source.title + Person.name.
@@ -63,7 +64,7 @@ This backlog is ordered roughly by **impact → effort**.
    - Person and Topic pages paginate quotes (cursor by date).
 
 12. **Admin / ingest workflow**
-   - Add `scripts/ingest/*` with a single source to start (official transcripts).
+   - Add `scripts/ingest/*` with a single source to start (American Presidency Project transcripts).
    - Idempotent upserts (Person/Topic/Source/Quote) + basic summary output (new/updated/skipped counts).
 
 ## Later
@@ -75,7 +76,7 @@ This backlog is ordered roughly by **impact → effort**.
    - Add basic error reporting and performance monitoring.
 
 ## Open questions / inputs I need from you
-- First target content source for Trump: which one should we start with (debates, rallies, interviews, official statements)?
+- Content source confirmation: OK to start with **The American Presidency Project** for Trump transcripts?
 - Market reaction semantics: do we treat quote day as ET close, or “next trading day” when the quote is outside market hours?
 - SEO strategy: do we go deep on one person first, or add a few other people with smaller datasets?
 - Hosting DB: only Vercel Postgres, or also local/dev docker compose?
