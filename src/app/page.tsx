@@ -224,7 +224,7 @@ export default async function Home({ searchParams }: Props) {
                 key={t.slug}
                 className="rounded-2xl border border-slate-200/70 bg-white/60 p-5 shadow-sm hover:bg-white focus-within:ring-2 focus-within:ring-indigo-500 focus-within:ring-offset-2 focus-within:ring-offset-[rgb(var(--background))] dark:border-white/10 dark:bg-black/20"
               >
-                <Link className="block" href={`/topic/${t.slug}`}>
+                <Link className="qt-focus block rounded-xl" href={`/topic/${t.slug}`}>
                   <div className="text-base font-semibold text-slate-900 dark:text-slate-100">{t.name}</div>
                   <div className="mt-2 text-xs text-slate-500 dark:text-slate-400">{t.n} quotes</div>
                 </Link>

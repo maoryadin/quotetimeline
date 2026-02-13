@@ -185,7 +185,7 @@ export default async function QuotePage({ params }: Props) {
                   key={r.id}
                   className="rounded-2xl border border-slate-200/70 bg-white/60 p-5 shadow-sm hover:bg-white focus-within:ring-2 focus-within:ring-indigo-500 focus-within:ring-offset-2 focus-within:ring-offset-[rgb(var(--background))] dark:border-white/10 dark:bg-black/20"
                 >
-                  <Link href={`/quote/${r.slug}`} className="block">
+                  <Link href={`/quote/${r.slug}`} className="qt-focus block rounded-xl">
                     <div className="flex items-baseline justify-between gap-3">
                       <div className="text-xs text-slate-500 dark:text-slate-400">{r.date}</div>
                       <div className="text-xs text-slate-500 dark:text-slate-400">{r.source.publisher ?? 'Source'}</div>

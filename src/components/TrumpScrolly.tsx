@@ -368,7 +368,11 @@ export function TrumpScrolly({ quotes, narrativeBlocks }: Props) {
               }
             >
               <div className="space-y-3">
-                <Link href={`/quote/${q.slug}`} className="block" aria-current={isActive ? 'true' : undefined}>
+                <Link
+                  href={`/quote/${q.slug}`}
+                  className="qt-focus block rounded-xl"
+                  aria-current={isActive ? 'true' : undefined}
+                >
                   <div className="flex items-baseline justify-between gap-3">
                     <div className="text-xs text-slate-500 dark:text-slate-400">{q.date}</div>
                     <div className="text-xs text-slate-500 dark:text-slate-400">{q.source.publisher ?? 'Source'}</div>
