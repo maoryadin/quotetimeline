@@ -5,26 +5,34 @@ import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { SiteFooter } from '@/components/SiteFooter';
 import { SiteHeader } from '@/components/SiteHeader';
-import { getQuoteCountByTopic, getQuotesByTopic, getTopicBySlug } from '@/lib/data';
+import { getQuoteCountByTopic, getQuotesByTopic, getTopicBySlug, getYearsForTopic } from '@/lib/data';
 
 type Props = {
   params: Promise<{ topic: string }>;
-  searchParams?: Promise<{ page?: string }>;
+  searchParams?: Promise<{ page?: string; year?: string }>;
 };
 
 export async function generateMetadata({ params, searchParams }: Props): Promise<Metadata> {
   const { topic } = await params;
   const sp = (await searchParams) ?? {};
   const page = toPage(sp.page);
+  const year = toYear(sp.year);
 
   const t = await getTopicBySlug(topic);
   if (!t) return { title: 'Topic not found | QuoteTimeline' };
 
   const base = process.env.NEXT_PUBLIC_SITE_URL ?? 'http://localhost:3000';
-  const canonical = page > 1 ? `${base}/topic/${t.slug}?page=${page}` : `${base}/topic/${t.slug}`;
 
-  const title = `${t.name} quotes | QuoteTimeline`;
-  const description = `A timeline-style index of sourced quotes tagged “${t.name}”.`;
+  const paramsOut = new URLSearchParams();
+  if (page > 1) paramsOut.set('page', String(page));
+  if (year) paramsOut.set('year', String(year));
+
+  const canonical = paramsOut.size ? `${base}/topic/${t.slug}?${paramsOut.toString()}` : `${base}/topic/${t.slug}`;
+
+  const title = year ? `${t.name} quotes (${year}) | QuoteTimeline` : `${t.name} quotes | QuoteTimeline`;
+  const description = year
+    ? `A timeline-style index of sourced quotes tagged “${t.name}” in ${year}.`
+    : `A timeline-style index of sourced quotes tagged “${t.name}”.`;
 
   return {
     title,
@@ -42,19 +50,39 @@ function toPage(s: string | undefined) {
   return Math.floor(n);
 }
 
+function toYear(s: string | undefined) {
+  if (!s) return null;
+  const n = Number(s);
+  if (!Number.isFinite(n)) return null;
+  const year = Math.floor(n);
+  if (year < 1900 || year > 2100) return null;
+  return year;
+}
+
 export default async function TopicPage({ params, searchParams }: Props) {
   const { topic } = await params;
   const sp = (await searchParams) ?? {};
   const page = toPage(sp.page);
+  const year = toYear(sp.year);
 
   const t = await getTopicBySlug(topic);
   if (!t) return notFound();
 
   const pageSize = 50;
 
-  const [quotes, totalQuotes] = await Promise.all([
-    getQuotesByTopic(topic, { page, pageSize }),
-    getQuoteCountByTopic(topic),
+  const pageHref = (targetPage: number, nextYear?: number | null) => {
+    const params = new URLSearchParams();
+    if (targetPage > 1) params.set('page', String(targetPage));
+    const y = nextYear ?? year;
+    if (y) params.set('year', String(y));
+    const qs = params.toString();
+    return qs ? `/topic/${t.slug}?${qs}` : `/topic/${t.slug}`;
+  };
+
+  const [quotes, totalQuotes, years] = await Promise.all([
+    getQuotesByTopic(topic, { page, pageSize }, { year: year ?? undefined }),
+    getQuoteCountByTopic(topic, { year: year ?? undefined }),
+    getYearsForTopic(topic),
   ]);
 
   return (
@@ -78,11 +106,54 @@ export default async function TopicPage({ params, searchParams }: Props) {
         <header className="mt-6 rounded-3xl border border-slate-200/70 bg-white/60 p-8 shadow-sm dark:border-white/10 dark:bg-black/20">
           <h1 className="text-3xl font-semibold tracking-tight sm:text-4xl">{t.name}</h1>
           <p className="mt-3 max-w-2xl text-slate-600 dark:text-slate-300">
-            A timeline-style index of sourced quotes tagged “{t.name}”.
+            {year ? (
+              <>A timeline-style index of sourced quotes tagged “{t.name}” in {year}.</>
+            ) : (
+              <>A timeline-style index of sourced quotes tagged “{t.name}”.</>
+            )}
           </p>
+
+          {years.length ? (
+            <div className="mt-5 text-xs text-slate-500 dark:text-slate-400">
+              <span className="sr-only">Filter topic timeline by year</span>
+              <div className="inline-flex items-center gap-2 rounded-full border border-slate-200/70 bg-white/70 px-3 py-1 dark:border-white/10 dark:bg-black/20">
+                <span className="font-medium text-slate-600 dark:text-slate-300">Year</span>
+                <div className="h-3 w-px bg-slate-200 dark:bg-white/10" aria-hidden="true" />
+                <div className="flex flex-wrap gap-2">
+                  <Link
+                    href={pageHref(page, null)}
+                    className={
+                      'qt-focus rounded-full px-2 py-0.5 text-[11px] ' +
+                      (year == null
+                        ? 'bg-slate-900 text-white dark:bg-white dark:text-slate-900'
+                        : 'text-slate-600 hover:underline dark:text-slate-300')
+                    }
+                  >
+                    All
+                  </Link>
+
+                  {years.slice(0, 6).map((y) => (
+                    <Link
+                      key={y.year}
+                      href={pageHref(page, y.year)}
+                      className={
+                        'qt-focus rounded-full px-2 py-0.5 text-[11px] ' +
+                        (year === y.year
+                          ? 'bg-slate-900 text-white dark:bg-white dark:text-slate-900'
+                          : 'text-slate-600 hover:underline dark:text-slate-300')
+                      }
+                      aria-current={year === y.year ? 'true' : undefined}
+                    >
+                      {y.year}
+                    </Link>
+                  ))}
+                </div>
+              </div>
+            </div>
+          ) : null}
         </header>
 
-        <section className="mt-10">
+        <section className="mt-10" id="quotes">
           <h2 className="text-lg font-semibold">Quotes</h2>
           <div className="mt-2 text-sm text-slate-600 dark:text-slate-300">
             Page {page} of {Math.max(1, Math.ceil(totalQuotes / pageSize))} • {totalQuotes} total
@@ -123,7 +194,7 @@ export default async function TopicPage({ params, searchParams }: Props) {
             {page > 1 ? (
               <Link
                 className="qt-focus rounded-xl border border-slate-200/70 bg-white/60 px-4 py-2 text-sm shadow-sm hover:bg-white dark:border-white/10 dark:bg-black/20"
-                href={`/topic/${t.slug}?page=${page - 1}`}
+                href={pageHref(page - 1) + '#quotes'}
               >
                 ← Newer
               </Link>
@@ -134,7 +205,7 @@ export default async function TopicPage({ params, searchParams }: Props) {
             {page * pageSize < totalQuotes ? (
               <Link
                 className="qt-focus rounded-xl border border-slate-200/70 bg-white/60 px-4 py-2 text-sm shadow-sm hover:bg-white dark:border-white/10 dark:bg-black/20"
-                href={`/topic/${t.slug}?page=${page + 1}`}
+                href={pageHref(page + 1) + '#quotes'}
               >
                 Older →
               </Link>

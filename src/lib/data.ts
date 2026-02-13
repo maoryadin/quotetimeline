@@ -183,8 +183,21 @@ export const getQuoteCountByPerson = cache(async (personSlug: string, filters: Q
   });
 });
 
-export const getQuoteCountByTopic = cache(async (topicSlug: string) => {
-  return prisma.quote.count({ where: { topics: { some: { topic: { slug: topicSlug } } } } });
+export const getQuoteCountByTopic = cache(async (topicSlug: string, filters: QuoteFilters = {}) => {
+  const year = filters.year;
+  const dateWhere = Number.isFinite(year)
+    ? (() => {
+        const { start, end } = yearBoundsUTC(year as number);
+        return { date: { gte: start, lt: end } };
+      })()
+    : {};
+
+  return prisma.quote.count({
+    where: {
+      topics: { some: { topic: { slug: topicSlug } } },
+      ...dateWhere,
+    },
+  });
 });
 
 export const getYearsForPerson = cache(async (personSlug: string) => {
@@ -193,6 +206,20 @@ export const getYearsForPerson = cache(async (personSlug: string) => {
     from "Quote"
     join "Person" on "Person"."id" = "Quote"."personId"
     where "Person"."slug" = ${personSlug}
+    group by 1
+    order by 1 desc;
+  `;
+
+  return rows.filter((r) => Number.isFinite(r.year)).map((r) => ({ year: r.year, n: r.n }));
+});
+
+export const getYearsForTopic = cache(async (topicSlug: string) => {
+  const rows = await prisma.$queryRaw<Array<{ year: number; n: number }>>`
+    select extract(year from "Quote"."date")::int as year, count(*)::int as n
+    from "Quote"
+    join "QuoteTopic" on "QuoteTopic"."quoteId" = "Quote"."id"
+    join "Topic" on "Topic"."id" = "QuoteTopic"."topicId"
+    where "Topic"."slug" = ${topicSlug}
     group by 1
     order by 1 desc;
   `;
@@ -231,12 +258,27 @@ export const getQuotesByPerson = cache(async (
   return quotes.map(mapQuote);
 });
 
-export const getQuotesByTopic = cache(async (topicSlug: string, pagination: Pagination = {}) => {
+export const getQuotesByTopic = cache(async (
+  topicSlug: string,
+  pagination: Pagination = {},
+  filters: QuoteFilters = {},
+) => {
   const pageSize = clampPageSize(pagination.pageSize ?? DEFAULT_PAGE_SIZE);
   const page = clampPage(pagination.page ?? 1);
 
+  const year = filters.year;
+  const dateWhere = Number.isFinite(year)
+    ? (() => {
+        const { start, end } = yearBoundsUTC(year as number);
+        return { date: { gte: start, lt: end } };
+      })()
+    : {};
+
   const quotes = await prisma.quote.findMany({
-    where: { topics: { some: { topic: { slug: topicSlug } } } },
+    where: {
+      topics: { some: { topic: { slug: topicSlug } } },
+      ...dateWhere,
+    },
     orderBy: { date: 'desc' },
     take: pageSize,
     skip: (page - 1) * pageSize,
