@@ -103,48 +103,65 @@ export async function GET(req: Request) {
     const recentlyUpdated = last ? Date.now() - last.getTime() < RECENT_UPDATE_MS : false;
 
     if (!recentlyUpdated) {
-      const importStart = addDaysUTC(start, -IMPORT_SLACK_DAYS);
-      const importEnd = addDaysUTC(end, IMPORT_SLACK_DAYS);
+      // Cross-instance guardrail: use a Postgres advisory lock keyed by symbol.
+      // This prevents a thundering herd when many users request the same missing window.
+      const lockRows = await prisma.$queryRaw<Array<{ locked: boolean }>>`
+        SELECT pg_try_advisory_lock(hashtext(${symbol})) as locked;
+      `;
+      const locked = lockRows[0]?.locked ?? false;
 
-      const mapping = providerForSymbol(symbol);
+      if (locked) {
+        try {
+          const importStart = addDaysUTC(start, -IMPORT_SLACK_DAYS);
+          const importEnd = addDaysUTC(end, IMPORT_SLACK_DAYS);
 
-      const series =
-        mapping.provider === 'fred'
-          ? await fetchFreDDailyCloses(mapping.id)
-          : await fetchStooqDailyCloses(mapping.id);
+          const mapping = providerForSymbol(symbol);
 
-      const slice = series.filter((p) => {
-        const d = parseISODateString(p.date);
-        if (!d) return false;
-        return d >= importStart && d <= importEnd;
-      });
+          const series =
+            mapping.provider === 'fred'
+              ? await fetchFreDDailyCloses(mapping.id)
+              : await fetchStooqDailyCloses(mapping.id);
 
-      if (slice.length) {
-        await prisma.$transaction(
-          slice.map((p) =>
-            prisma.marketDaily.upsert({
-              where: {
-                symbol_date: {
-                  symbol,
-                  date: isoDateToUTCDate(p.date),
-                },
-              },
-              create: {
-                symbol,
-                date: isoDateToUTCDate(p.date),
-                close: p.close,
-                provider: mapping.provider,
-              },
-              update: {
-                close: p.close,
-                provider: mapping.provider,
-              },
-            }),
-          ),
-        );
+          const slice = series.filter((p) => {
+            const d = parseISODateString(p.date);
+            if (!d) return false;
+            return d >= importStart && d <= importEnd;
+          });
+
+          if (slice.length) {
+            await prisma.$transaction(
+              slice.map((p) =>
+                prisma.marketDaily.upsert({
+                  where: {
+                    symbol_date: {
+                      symbol,
+                      date: isoDateToUTCDate(p.date),
+                    },
+                  },
+                  create: {
+                    symbol,
+                    date: isoDateToUTCDate(p.date),
+                    close: p.close,
+                    provider: mapping.provider,
+                  },
+                  update: {
+                    close: p.close,
+                    provider: mapping.provider,
+                  },
+                }),
+              ),
+            );
+          }
+
+          points = await readWindow();
+        } finally {
+          await prisma.$queryRaw`SELECT pg_advisory_unlock(hashtext(${symbol}));`;
+        }
+      } else {
+        // Another request (or a cron job) is already refreshing this symbol.
+        // Return whatever we currently have; the client can retry shortly.
+        points = await readWindow();
       }
-
-      points = await readWindow();
     }
   }
 

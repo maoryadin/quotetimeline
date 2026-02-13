@@ -61,13 +61,21 @@ export default async function SearchPage({ searchParams }: Props) {
           <div className="text-sm text-slate-600 dark:text-slate-300">Type something to search.</div>
         )}
 
-        <ul className="mt-4 grid grid-cols-1 gap-3">
-          {results.map((r) => (
-            <li
-              key={r.id}
-              className="group rounded-2xl border border-slate-200/70 bg-white/60 p-5 shadow-sm hover:bg-white focus-within:ring-2 focus-within:ring-indigo-500 focus-within:ring-offset-2 focus-within:ring-offset-white dark:border-white/10 dark:bg-black/20 dark:focus-within:ring-offset-black"
-            >
-              <Link href={`/quote/${r.slug}`} className="block">
+        {query && results.length === 0 ? (
+          <div className="mt-4 rounded-2xl border border-slate-200/70 bg-white/60 p-6 text-sm text-slate-600 shadow-sm dark:border-white/10 dark:bg-black/20 dark:text-slate-300">
+            No matches for <span className="font-medium text-slate-900 dark:text-slate-100">“{query}”</span>.
+            <div className="mt-2 text-xs text-slate-500 dark:text-slate-400">
+              Try a shorter query, different spelling, or search by a source title/publisher.
+            </div>
+          </div>
+        ) : (
+          <ul className="mt-4 grid grid-cols-1 gap-3">
+            {results.map((r) => (
+              <li
+                key={r.id}
+                className="group rounded-2xl border border-slate-200/70 bg-white/60 p-5 shadow-sm hover:bg-white focus-within:ring-2 focus-within:ring-indigo-500 focus-within:ring-offset-2 focus-within:ring-offset-white dark:border-white/10 dark:bg-black/20 dark:focus-within:ring-offset-black"
+              >
+                <Link href={`/quote/${r.slug}`} className="block">
                   <div className="flex items-baseline justify-between gap-3">
                     <div className="text-xs text-slate-500 dark:text-slate-400">{r.date}</div>
                     <div className="text-xs text-slate-500 dark:text-slate-400">{r.source.publisher ?? 'Source'}</div>
@@ -77,9 +85,10 @@ export default async function SearchPage({ searchParams }: Props) {
                     <div className="mt-2 line-clamp-2 text-sm text-slate-600 dark:text-slate-300">{r.context}</div>
                   ) : null}
                 </Link>
-            </li>
-          ))}
-        </ul>
+              </li>
+            ))}
+          </ul>
+        )}
       </section>
     </main>
   );

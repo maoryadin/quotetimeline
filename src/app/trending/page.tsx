@@ -45,24 +45,34 @@ export default async function TrendingPage() {
         </header>
 
         <section className="mt-10">
-          <ul className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-            {ranked.map((x) => (
-              <li
-                key={x.slug}
-                className="rounded-2xl border border-slate-200/70 bg-white/60 p-5 shadow-sm hover:bg-white focus-within:ring-2 focus-within:ring-indigo-500 focus-within:ring-offset-2 focus-within:ring-offset-white dark:border-white/10 dark:bg-black/20 dark:focus-within:ring-offset-black"
-              >
-                <div className="flex items-center justify-between gap-3">
-                  <Link className="qt-focus text-base font-semibold text-slate-900 hover:underline dark:text-slate-100" href={`/topic/${x.slug}`}>
-                    {x.name}
-                  </Link>
-                  <div className="rounded-full bg-slate-900 px-2.5 py-1 text-xs font-medium text-white dark:bg-white dark:text-slate-900">
-                    {x.n}
+          {ranked.length ? (
+            <ul className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+              {ranked.map((x) => (
+                <li
+                  key={x.slug}
+                  className="rounded-2xl border border-slate-200/70 bg-white/60 p-5 shadow-sm hover:bg-white focus-within:ring-2 focus-within:ring-indigo-500 focus-within:ring-offset-2 focus-within:ring-offset-white dark:border-white/10 dark:bg-black/20 dark:focus-within:ring-offset-black"
+                >
+                  <div className="flex items-center justify-between gap-3">
+                    <Link
+                      className="qt-focus text-base font-semibold text-slate-900 hover:underline dark:text-slate-100"
+                      href={`/topic/${x.slug}`}
+                    >
+                      {x.name}
+                    </Link>
+                    <div className="rounded-full bg-slate-900 px-2.5 py-1 text-xs font-medium text-white dark:bg-white dark:text-slate-900">
+                      {x.n}
+                    </div>
                   </div>
-                </div>
-                <div className="mt-3 text-xs text-slate-500 dark:text-slate-400">/topic/{x.slug}</div>
-              </li>
-            ))}
-          </ul>
+                  <div className="mt-3 text-xs text-slate-500 dark:text-slate-400">/topic/{x.slug}</div>
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <div className="rounded-2xl border border-slate-200/70 bg-white/60 p-6 text-sm text-slate-600 shadow-sm dark:border-white/10 dark:bg-black/20 dark:text-slate-300">
+              No trending topics yet.
+              <div className="mt-2 text-xs text-slate-500 dark:text-slate-400">This list appears as soon as a few quotes are indexed and tagged.</div>
+            </div>
+          )}
         </section>
 
         <SiteFooter />
