@@ -30,10 +30,10 @@ export default async function TopicsPage() {
       <SiteHeader />
       <main id="main" className="mx-auto max-w-5xl px-6 py-10">
         <div className="flex items-center justify-between gap-3">
-          <Link href="/" className="text-sm text-slate-600 hover:underline dark:text-slate-300">
+          <Link href="/" className="text-sm text-slate-600 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2 focus-visible:ring-offset-white dark:text-slate-300 dark:focus-visible:ring-offset-black">
             ← Home
           </Link>
-          <Link href="/search" className="text-sm text-slate-600 hover:underline dark:text-slate-300">
+          <Link href="/search" className="text-sm text-slate-600 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2 focus-visible:ring-offset-white dark:text-slate-300 dark:focus-visible:ring-offset-black">
             Search →
           </Link>
         </div>
@@ -51,7 +51,7 @@ export default async function TopicsPage() {
               {topics.map((t) => (
                 <li
                   key={t.slug}
-                  className="rounded-2xl border border-slate-200/70 bg-white/60 p-5 shadow-sm hover:bg-white dark:border-white/10 dark:bg-black/20"
+                  className="rounded-2xl border border-slate-200/70 bg-white/60 p-5 shadow-sm hover:bg-white focus-within:ring-2 focus-within:ring-indigo-500 focus-within:ring-offset-2 focus-within:ring-offset-white dark:border-white/10 dark:bg-black/20 dark:focus-within:ring-offset-black"
                 >
                   <div className="flex items-center justify-between gap-3">
                     <Link
