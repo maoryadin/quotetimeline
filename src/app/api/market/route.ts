@@ -11,6 +11,10 @@ import {
 
 const ALLOWED_SYMBOLS = new Set(['spy.us', '^spx', '^vix', 'vxx.us']);
 
+// Provider/DB cache tuning.
+const RECENT_UPDATE_MS = 6 * 60 * 60 * 1000; // 6h
+const IMPORT_SLACK_DAYS = 10; // widen import around the requested window for weekends/holidays
+
 function providerForSymbol(symbol: string): { provider: 'stooq' | 'fred'; id: string } {
   // Our UI uses a small set of conventional symbols.
   // Map them to provider-specific identifiers.
@@ -20,7 +24,6 @@ function providerForSymbol(symbol: string): { provider: 'stooq' | 'fred'; id: st
   // Fallback to Stooq symbol passthrough for ETFs.
   return { provider: 'stooq', id: symbol };
 }
-
 
 export async function GET(req: Request) {
   const url = new URL(req.url);
@@ -97,11 +100,11 @@ export async function GET(req: Request) {
     });
 
     const last = lastUpdate._max.updatedAt;
-    const recentlyUpdated = last ? Date.now() - last.getTime() < 6 * 60 * 60 * 1000 : false;
+    const recentlyUpdated = last ? Date.now() - last.getTime() < RECENT_UPDATE_MS : false;
 
     if (!recentlyUpdated) {
-      const importStart = addDaysUTC(start, -10);
-      const importEnd = addDaysUTC(end, 10);
+      const importStart = addDaysUTC(start, -IMPORT_SLACK_DAYS);
+      const importEnd = addDaysUTC(end, IMPORT_SLACK_DAYS);
 
       const mapping = providerForSymbol(symbol);
 
