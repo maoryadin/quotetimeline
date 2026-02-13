@@ -9,21 +9,11 @@ import {
   toISODateString,
 } from '@/lib/market/core';
 
-const ALLOWED_SYMBOLS = new Set(['spy.us', '^spx', '^vix', 'vxx.us']);
+import { ALLOWED_SYMBOLS, providerForSymbol } from '@/lib/market/symbols';
 
 // Provider/DB cache tuning.
 const RECENT_UPDATE_MS = 6 * 60 * 60 * 1000; // 6h
 const IMPORT_SLACK_DAYS = 10; // widen import around the requested window for weekends/holidays
-
-function providerForSymbol(symbol: string): { provider: 'stooq' | 'fred'; id: string } {
-  // Our UI uses a small set of conventional symbols.
-  // Map them to provider-specific identifiers.
-  if (symbol === '^spx') return { provider: 'fred', id: 'SP500' };
-  if (symbol === '^vix') return { provider: 'fred', id: 'VIXCLS' };
-
-  // Fallback to Stooq symbol passthrough for ETFs.
-  return { provider: 'stooq', id: symbol };
-}
 
 export async function GET(req: Request) {
   const url = new URL(req.url);

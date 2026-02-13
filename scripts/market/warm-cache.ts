@@ -8,13 +8,7 @@ import {
   toISODateString,
 } from '@/lib/market/core';
 
-const ALLOWED_SYMBOLS = new Set(['spy.us', '^spx', '^vix', 'vxx.us']);
-
-function providerForSymbol(symbol: string): { provider: 'stooq' | 'fred'; id: string } {
-  if (symbol === '^spx') return { provider: 'fred', id: 'SP500' };
-  if (symbol === '^vix') return { provider: 'fred', id: 'VIXCLS' };
-  return { provider: 'stooq', id: symbol };
-}
+import { ALLOWED_SYMBOLS, providerForSymbol } from '@/lib/market/symbols';
 
 function parseArgs(argv: string[]) {
   const out: Record<string, string> = {};
