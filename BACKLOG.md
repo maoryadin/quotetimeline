@@ -24,18 +24,23 @@ This backlog is ordered roughly by **impact → effort**.
    - Add “Related quotes” internal links (same topic + same source).
    - Acceptance: Rich Results Test passes; crawl finds internal links from quote pages.
 
-5. **Scrollytelling timeline (sticky chart updates as you scroll)**
+5. **SEO: sitemap/indexation hardening for scale**
+   - Ensure `/sitemap.xml` stays within Google limits (split sitemaps when needed) + includes `lastmod`.
+   - Add a lightweight “indexation checklist” doc (canonicals, pagination prev/next, noindex rules for thin pages).
+   - Acceptance: sitemaps validate; 0 duplicate canonical warnings in Search Console after ingest.
+
+6. **Scrollytelling timeline (sticky chart updates as you scroll)**
    - Vertical feed of Trump quotes (cards).
    - One sticky chart that updates to the “active” card (IntersectionObserver).
    - Start with a 7-day window around the quote date.
    - Acceptance: scrolling through 20+ cards updates the chart with no jank (basic perf check in Lighthouse).
 
-6. **Market data MVP (free/low-cost)**
+7. **Market data MVP (free/low-cost)**
    - Add daily S&P 500 + VIX series for the 7-day window.
    - Cache results in DB (avoid calling provider on every request).
    - Acceptance: repeated requests for same window do 0 external API calls after first fetch.
 
-7. **Information architecture polish (Trump-first)**
+8. **Information architecture polish (Trump-first)**
    - Filters: year, source type, topic (Trump feed + topic pages).
    - Pagination/infinite scroll on the main Trump feed.
 
@@ -45,34 +50,34 @@ This backlog is ordered roughly by **impact → effort**.
 - Added per-page `generateMetadata()` + canonical URLs.
 
 ## Soon
-8. **Market reaction: simple “before/after” metric (makes the charts meaningful)**
+9. **Market reaction: simple “before/after” metric (makes the charts meaningful)**
    - For each quote, compute & display: 1d and 7d % change (S&P) + VIX delta over the same window.
    - Define which day is “t=0” (quote date in ET vs UTC) and document it.
    - Acceptance: quote card shows a small, consistent summary (e.g., “S&P +0.8% (1d), +1.9% (7d); VIX -0.6 (7d)”).
 
-9. **Search improvements (performance + relevance)**
+10. **Search improvements (performance + relevance)**
    - Option A: Postgres FTS (tsvector) on Quote.text/context + Source.title + Person.name.
    - Option B: Meilisearch.
    - Add indexes and basic ranking.
 
-10. **Topic SEO: make topic hubs rankable**
+11. **Topic SEO: make topic hubs rankable**
    - Add short intro copy blocks per key Trump topic (economy, immigration, foreign policy, etc.).
    - Ensure pagination creates indexable pages with canonical prev/next.
    - Acceptance: topic pages have unique titles/descriptions + consistent internal links to quote pages.
 
-11. **Pagination / infinite scroll (non-Trump pages)**
+12. **Pagination / infinite scroll (non-Trump pages)**
    - Person and Topic pages paginate quotes (cursor by date).
 
-12. **Admin / ingest workflow**
+13. **Admin / ingest workflow**
    - Add `scripts/ingest/*` with a single source to start (American Presidency Project transcripts).
    - Idempotent upserts (Person/Topic/Source/Quote) + basic summary output (new/updated/skipped counts).
 
 ## Later
-13. **Monetization readiness**
+14. **Monetization readiness**
    - About / Sources / Contact pages.
    - Ads policy checklist + analytics.
 
-14. **Observability**
+15. **Observability**
    - Add basic error reporting and performance monitoring.
 
 ## Open questions / inputs I need from you
