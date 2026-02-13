@@ -25,7 +25,7 @@ export default function SourcesPage() {
   return (
     <>
       <SiteHeader />
-      <main id="main" className="mx-auto max-w-5xl px-6 py-10">
+      <main id="main" className="mx-auto max-w-5xl px-4 py-10 sm:px-6">
         <header className="rounded-3xl border border-slate-200/70 bg-white/60 p-8 shadow-sm dark:border-white/10 dark:bg-black/20">
           <h1 className="text-3xl font-semibold tracking-tight sm:text-4xl">Sources</h1>
           <p className="mt-3 max-w-3xl text-slate-600 dark:text-slate-300">

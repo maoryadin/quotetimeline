@@ -60,7 +60,7 @@ export default async function TopicPage({ params, searchParams }: Props) {
   return (
     <>
       <SiteHeader />
-      <main id="main" className="mx-auto max-w-5xl px-6 py-10">
+      <main id="main" className="mx-auto max-w-5xl px-4 py-10 sm:px-6">
         <div className="flex items-center justify-between gap-3">
           <Link href="/" className="text-sm text-slate-600 hover:underline dark:text-slate-300">
             ← Home

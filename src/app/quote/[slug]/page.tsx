@@ -80,7 +80,7 @@ export default async function QuotePage({ params }: Props) {
     <>
       <SiteHeader />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
-      <main id="main" className="mx-auto max-w-5xl px-6 py-10">
+      <main id="main" className="mx-auto max-w-5xl px-4 py-10 sm:px-6">
         <div className="flex items-center justify-between gap-3">
           <Link href={`/#q=${encodeURIComponent(q.slug)}`} className="text-sm text-slate-600 hover:underline dark:text-slate-300">
             ← Back to timeline
@@ -112,7 +112,7 @@ export default async function QuotePage({ params }: Props) {
           <div className="mt-6">
             <div className="text-xs font-medium uppercase tracking-wide text-slate-500 dark:text-slate-400">Primary source</div>
             <a
-              className="mt-2 inline-flex items-center gap-2 rounded-xl bg-slate-900 px-4 py-2 text-sm font-medium text-white hover:bg-slate-800 dark:bg-white dark:text-slate-900"
+              className="mt-2 inline-flex items-center gap-2 rounded-xl bg-slate-900 px-4 py-2 text-sm font-medium text-white hover:bg-slate-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2 focus-visible:ring-offset-white dark:bg-white dark:text-slate-900 dark:focus-visible:ring-offset-black"
               href={q.source.url}
               target="_blank"
               rel="noopener noreferrer"

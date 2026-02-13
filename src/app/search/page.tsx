@@ -39,7 +39,7 @@ export default async function SearchPage({ searchParams }: Props) {
   const results = query ? await searchQuotes(query) : [];
 
   return (
-    <main id="main" className="mx-auto max-w-5xl px-6 py-10">
+    <main id="main" className="mx-auto max-w-5xl px-4 py-10 sm:px-6">
       <div className="flex items-center justify-between gap-3">
         <Link href="/" className="text-sm text-slate-600 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2 focus-visible:ring-offset-white dark:text-slate-300 dark:focus-visible:ring-offset-black">
           ← Home

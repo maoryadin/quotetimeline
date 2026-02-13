@@ -36,7 +36,7 @@ export default async function StoryPage() {
   return (
     <>
       <SiteHeader />
-      <main id="main" className="mx-auto max-w-5xl px-6 py-10">
+      <main id="main" className="mx-auto max-w-5xl px-4 py-10 sm:px-6">
         <header className="rounded-3xl border border-slate-200/70 bg-white/60 p-8 shadow-sm dark:border-white/10 dark:bg-black/20">
           <div className="flex flex-wrap items-baseline justify-between gap-3">
             <h1 className="text-3xl font-semibold tracking-tight sm:text-4xl">Story mode</h1>
