@@ -66,6 +66,33 @@ Where to run them:
 Notes:
 - Don’t run `db:seed` on every deploy unless you intentionally want idempotent upserts each time.
 
+## Ingest (build real Trump data)
+
+This repo includes a few ingest scripts under `scripts/ingest/*`.
+
+### The American Presidency Project (Trump)
+
+Source: https://www.presidency.ucsb.edu/
+
+This ingester crawls the Trump person page, visits document pages, and extracts quote-sized sentences.
+
+Run (local):
+
+```bash
+# Make sure DATABASE_URL points at your Postgres (local or Vercel Postgres)
+export DATABASE_URL="postgresql://USER:PASSWORD@HOST:5432/quotetimeline?schema=public"
+
+# Ingest up to 3 listing pages / 50 documents by default
+npm run ingest:app:trump
+
+# Example: go bigger
+npm run ingest:app:trump -- --maxPages=20 --maxDocs=500 --maxQuotesPerDoc=50 --sleepMs=350
+```
+
+Notes:
+- It is designed to be **idempotent** (safe to rerun) and uses stable slugs (`stableQuoteSlug()` + collision guard).
+- The script prints a deterministic summary: new/updated/skipped + a short error list.
+
 ## Notes
 
 - The app now reads from Postgres (Prisma).
