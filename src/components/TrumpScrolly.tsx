@@ -79,6 +79,7 @@ export function TrumpScrolly({ quotes }: Props) {
   }, [activeQuote]);
 
   const [isDesktop, setIsDesktop] = useState(false);
+  const [reduceMotion, setReduceMotion] = useState(false);
 
   const [copiedSlug, setCopiedSlug] = useState<string | null>(null);
   useEffect(() => {
@@ -90,6 +91,14 @@ export function TrumpScrolly({ quotes }: Props) {
   useEffect(() => {
     const mq = window.matchMedia('(min-width: 1024px)');
     const onChange = () => setIsDesktop(mq.matches);
+    onChange();
+    mq.addEventListener('change', onChange);
+    return () => mq.removeEventListener('change', onChange);
+  }, []);
+
+  useEffect(() => {
+    const mq = window.matchMedia('(prefers-reduced-motion: reduce)');
+    const onChange = () => setReduceMotion(mq.matches);
     onChange();
     mq.addEventListener('change', onChange);
     return () => mq.removeEventListener('change', onChange);
@@ -189,6 +198,8 @@ export function TrumpScrolly({ quotes }: Props) {
     return <div className="text-sm text-slate-600 dark:text-slate-300">No quotes yet.</div>;
   }
 
+  const scrollBehavior: ScrollBehavior = reduceMotion ? 'auto' : 'smooth';
+
   return (
     <div className="grid grid-cols-1 gap-6 lg:grid-cols-[360px_1fr]" ref={rootRef}>
       <aside className="order-1 lg:sticky lg:top-24 lg:h-[calc(100vh-7rem)]">
@@ -199,9 +210,40 @@ export function TrumpScrolly({ quotes }: Props) {
               <>
                 <div className="font-semibold">7D around {activeQuote.date}</div>
                 <div className="mt-1 text-xs text-slate-500 dark:text-slate-400">The chart stays put while you scroll the timeline.</div>
-                <Link href={`/quote/${activeQuote.slug}`} className="mt-2 block text-xs font-medium text-indigo-700 hover:underline dark:text-indigo-300">
-                  Open active quote →
-                </Link>
+                <div className="mt-3 flex flex-wrap gap-2">
+                  <Link
+                    href={`/quote/${activeQuote.slug}`}
+                    className="rounded-lg border border-slate-200/70 bg-white/70 px-3 py-1.5 text-[11px] font-medium text-indigo-700 hover:bg-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2 focus-visible:ring-offset-white dark:border-white/10 dark:bg-black/20 dark:text-indigo-300 dark:hover:bg-black/30 dark:focus-visible:ring-offset-black"
+                  >
+                    Open quote
+                  </Link>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const feed = feedRef.current;
+                      if (!feed || !activeQuote) return;
+                      const el = feed.querySelector<HTMLElement>(`[data-quote-id="${activeQuote.id}"]`);
+                      el?.scrollIntoView({ block: 'center', behavior: scrollBehavior });
+                    }}
+                    className="rounded-lg border border-slate-200/70 bg-white/70 px-3 py-1.5 text-[11px] font-medium text-slate-700 hover:bg-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2 focus-visible:ring-offset-white dark:border-white/10 dark:bg-black/20 dark:text-slate-200 dark:hover:bg-black/30 dark:focus-visible:ring-offset-black"
+                  >
+                    Jump to active
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (isDesktop) {
+                        const feed = feedRef.current;
+                        feed?.scrollTo({ top: 0, behavior: scrollBehavior });
+                      } else {
+                        window.scrollTo({ top: 0, behavior: scrollBehavior });
+                      }
+                    }}
+                    className="rounded-lg border border-slate-200/70 bg-white/70 px-3 py-1.5 text-[11px] font-medium text-slate-700 hover:bg-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2 focus-visible:ring-offset-white dark:border-white/10 dark:bg-black/20 dark:text-slate-200 dark:hover:bg-black/30 dark:focus-visible:ring-offset-black"
+                  >
+                    Top
+                  </button>
+                </div>
               </>
             ) : null}
           </div>
