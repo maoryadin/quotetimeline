@@ -24,7 +24,7 @@ export default function Loading() {
           ))}
         </div>
 
-        <div className="sr-only" aria-live="polite">
+        <div className="text-xs text-slate-500 dark:text-slate-400" aria-live="polite">
           Loading…
         </div>
       </div>

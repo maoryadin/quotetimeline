@@ -304,7 +304,7 @@ export function TrumpScrolly({ quotes, narrativeBlocks }: Props) {
           </div>
 
           <details className="mt-4" open={isDesktop}>
-            <summary className="cursor-pointer select-none text-xs font-medium text-slate-600 hover:text-slate-800 dark:text-slate-300 dark:hover:text-slate-100">
+            <summary className="qt-focus -mx-2 cursor-pointer select-none rounded-lg px-2 py-1 text-xs font-medium text-slate-600 hover:text-slate-800 dark:text-slate-300 dark:hover:text-slate-100">
               Market chart + tips
             </summary>
 

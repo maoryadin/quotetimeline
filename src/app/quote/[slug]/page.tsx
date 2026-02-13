@@ -6,6 +6,7 @@ import { notFound } from 'next/navigation';
 import { SiteFooter } from '@/components/SiteFooter';
 import { SiteHeader } from '@/components/SiteHeader';
 import { MarketMiniChart } from '@/components/MarketMiniChart';
+import { QuoteShareButtons } from '@/components/QuoteShareButtons';
 import { getPersonBySlug, getQuoteBySlug, getRelatedQuotes } from '@/lib/data';
 
 type Props = { params: Promise<{ slug: string }> };
@@ -168,26 +169,7 @@ export default async function QuotePage({ params }: Props) {
 
             <div className="rounded-2xl border border-slate-200/70 bg-white/60 p-5 shadow-sm dark:border-white/10 dark:bg-black/20">
               <div className="text-xs font-medium uppercase tracking-wide text-slate-500 dark:text-slate-400">Share</div>
-              <div className="mt-3 flex flex-wrap gap-2">
-                <a
-                  className="qt-focus rounded-xl bg-slate-900 px-4 py-2 text-sm font-medium text-white hover:bg-slate-800 dark:bg-white dark:text-slate-900"
-                  href={`https://twitter.com/intent/tweet?text=${encodeURIComponent(`“${q.text}” — ${person?.name ?? q.personSlug}`)}&url=${encodeURIComponent(canonicalUrl)}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >
-                  Tweet
-                </a>
-                <button
-                  type="button"
-                  className="qt-focus rounded-xl border border-slate-200/70 bg-white/70 px-4 py-2 text-sm font-medium text-slate-900 hover:bg-white dark:border-white/10 dark:bg-black/20 dark:text-slate-100"
-                  onClick={() => {
-                    const url = canonicalUrl;
-                    navigator.clipboard?.writeText(url).catch(() => {});
-                  }}
-                >
-                  Copy link
-                </button>
-              </div>
+              <QuoteShareButtons url={canonicalUrl} tweetText={`“${q.text}” — ${person?.name ?? q.personSlug}`} />
               <div className="mt-3 text-xs text-slate-500 dark:text-slate-400">{canonicalUrl}</div>
             </div>
           </div>

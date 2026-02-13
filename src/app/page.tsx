@@ -192,7 +192,7 @@ export default async function Home({ searchParams }: Props) {
                 ← Newer
               </Link>
             ) : (
-              <div />
+              <span aria-hidden="true" />
             )}
 
             {page * pageSize < totalQuotes ? (
@@ -203,7 +203,7 @@ export default async function Home({ searchParams }: Props) {
                 Older →
               </Link>
             ) : (
-              <div />
+              <span aria-hidden="true" />
             )}
           </div>
 
