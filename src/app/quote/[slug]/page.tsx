@@ -113,7 +113,7 @@ export default async function QuotePage({ params }: Props) {
           <div className="mt-6">
             <div className="text-xs font-medium uppercase tracking-wide text-slate-500 dark:text-slate-400">Primary source</div>
             <a
-              className="mt-2 inline-flex items-center gap-2 rounded-xl bg-slate-900 px-4 py-2 text-sm font-medium text-white hover:bg-slate-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2 focus-visible:ring-offset-white dark:bg-white dark:text-slate-900 dark:focus-visible:ring-offset-black"
+              className="qt-focus mt-2 inline-flex items-center gap-2 rounded-xl bg-slate-900 px-4 py-2 text-sm font-medium text-white hover:bg-slate-800 dark:bg-white dark:text-slate-900"
               href={q.source.url}
               target="_blank"
               rel="noopener noreferrer"
@@ -185,7 +185,7 @@ export default async function QuotePage({ params }: Props) {
               {related.map((r) => (
                 <li
                   key={r.id}
-                  className="rounded-2xl border border-slate-200/70 bg-white/60 p-5 shadow-sm hover:bg-white focus-within:ring-2 focus-within:ring-indigo-500 focus-within:ring-offset-2 focus-within:ring-offset-white dark:border-white/10 dark:bg-black/20 dark:focus-within:ring-offset-black"
+                  className="rounded-2xl border border-slate-200/70 bg-white/60 p-5 shadow-sm hover:bg-white focus-within:ring-2 focus-within:ring-indigo-500 focus-within:ring-offset-2 focus-within:ring-offset-[rgb(var(--background))] dark:border-white/10 dark:bg-black/20"
                 >
                   <Link href={`/quote/${r.slug}`} className="block">
                     <div className="flex items-baseline justify-between gap-3">

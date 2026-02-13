@@ -178,7 +178,7 @@ export default async function TopicPage({ params, searchParams }: Props) {
                 <div className="mt-3 text-xs text-slate-500 dark:text-slate-400">
                   Source:{' '}
                   <a
-                    className="underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2 focus-visible:ring-offset-white dark:focus-visible:ring-offset-black"
+                    className="qt-focus underline"
                     href={q.source.url}
                     target="_blank"
                     rel="noopener noreferrer"
