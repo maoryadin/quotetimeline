@@ -54,12 +54,12 @@ export default function AboutPage() {
           <h2 className="text-sm font-semibold text-slate-900 dark:text-slate-100">Quick links</h2>
           <ul className="mt-3 list-disc space-y-2 pl-5 text-sm text-slate-700 dark:text-slate-200">
             <li>
-              <Link className="text-indigo-700 hover:underline dark:text-indigo-300" href="/sources">
+              <Link className="qt-focus text-indigo-700 hover:underline dark:text-indigo-300" href="/sources">
                 Data sources
               </Link>
             </li>
             <li>
-              <Link className="text-indigo-700 hover:underline dark:text-indigo-300" href="/contact">
+              <Link className="qt-focus text-indigo-700 hover:underline dark:text-indigo-300" href="/contact">
                 Contact
               </Link>
             </li>

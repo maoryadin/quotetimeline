@@ -40,7 +40,7 @@ export default async function StoryPage() {
         <header className="rounded-3xl border border-slate-200/70 bg-white/60 p-8 shadow-sm dark:border-white/10 dark:bg-black/20">
           <div className="flex flex-wrap items-baseline justify-between gap-3">
             <h1 className="text-3xl font-semibold tracking-tight sm:text-4xl">Story mode</h1>
-            <Link href="/" className="text-sm text-slate-600 hover:underline dark:text-slate-300">
+            <Link href="/" className="qt-focus text-sm text-slate-600 hover:underline dark:text-slate-300">
               ← Back to timeline
             </Link>
           </div>

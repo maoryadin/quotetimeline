@@ -56,7 +56,7 @@ export default function SourcesPage() {
             </p>
             <div className="mt-3 text-sm text-slate-700 dark:text-slate-200">
               <a
-                className="text-indigo-700 hover:underline dark:text-indigo-300"
+                className="qt-focus text-indigo-700 hover:underline dark:text-indigo-300"
                 href="https://stooq.com/"
                 target="_blank"
                 rel="noopener noreferrer"
@@ -71,7 +71,7 @@ export default function SourcesPage() {
             <p className="mt-2 text-sm text-slate-600 dark:text-slate-300">
               If you spot a broken primary-source link or want to suggest an additional canonical corpus, use the contact page.
             </p>
-            <Link className="mt-3 inline-block text-sm font-medium text-indigo-700 hover:underline dark:text-indigo-300" href="/contact">
+            <Link className="qt-focus mt-3 inline-block text-sm font-medium text-indigo-700 hover:underline dark:text-indigo-300" href="/contact">
               Contact →
             </Link>
           </div>

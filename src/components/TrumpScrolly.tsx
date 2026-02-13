@@ -5,15 +5,24 @@ import Link from 'next/link';
 import type { QuoteView } from '@/lib/data';
 import { MarketMiniChart } from '@/components/MarketMiniChart';
 
+export type NarrativeBlock = {
+  /** Insert a narrative card before quotes[atIndex]. */
+  atIndex: number;
+  title: string;
+  body: string;
+};
+
 type Props = {
   quotes: QuoteView[];
+  narrativeBlocks?: NarrativeBlock[];
 };
 
 type FeedItem =
   | { kind: 'year'; year: string; key: string }
+  | { kind: 'narrative'; title: string; body: string; key: string }
   | { kind: 'quote'; quote: QuoteView; key: string };
 
-export function TrumpScrolly({ quotes }: Props) {
+export function TrumpScrolly({ quotes, narrativeBlocks }: Props) {
   const parseSlugFromHash = (rawHash: string) => {
     const hash = rawHash.replace(/^#/, '');
     const encoded = hash.startsWith('q=') ? hash.slice(2) : hash.startsWith('quote-') ? hash.slice('quote-'.length) : '';
@@ -51,7 +60,21 @@ export function TrumpScrolly({ quotes }: Props) {
     let lastYear = '';
     const items: FeedItem[] = [];
 
-    for (const q of quotes) {
+    const blocks = (narrativeBlocks ?? [])
+      .filter((b) => Number.isFinite(b.atIndex))
+      .slice()
+      .sort((a, b) => a.atIndex - b.atIndex);
+
+    let blockIdx = 0;
+
+    for (let i = 0; i < quotes.length; i++) {
+      while (blockIdx < blocks.length && blocks[blockIdx]!.atIndex === i) {
+        const b = blocks[blockIdx]!;
+        items.push({ kind: 'narrative', title: b.title, body: b.body, key: `narrative-${b.atIndex}-${blockIdx}` });
+        blockIdx++;
+      }
+
+      const q = quotes[i]!;
       const year = (q.date || '').slice(0, 4) || 'Unknown year';
       if (year !== lastYear) {
         items.push({ kind: 'year', year, key: `year-${year}` });
@@ -60,8 +83,15 @@ export function TrumpScrolly({ quotes }: Props) {
       items.push({ kind: 'quote', quote: q, key: q.id });
     }
 
+    // Trailing blocks (atIndex >= quotes.length)
+    while (blockIdx < blocks.length) {
+      const b = blocks[blockIdx]!;
+      items.push({ kind: 'narrative', title: b.title, body: b.body, key: `narrative-${b.atIndex}-${blockIdx}` });
+      blockIdx++;
+    }
+
     return items;
-  }, [quotes]);
+  }, [quotes, narrativeBlocks]);
 
   // Keep the URL hash in sync with the active quote so scrolly positions are shareable.
   // Debounce to avoid jank while the IntersectionObserver rapidly changes "active" during fast scroll.
@@ -280,6 +310,19 @@ export function TrumpScrolly({ quotes }: Props) {
             );
           }
 
+          if (item.kind === 'narrative') {
+            return (
+              <section
+                key={item.key}
+                className="rounded-2xl border border-slate-200/70 bg-gradient-to-br from-white/80 to-indigo-50/50 p-5 shadow-sm dark:border-white/10 dark:from-black/30 dark:to-indigo-950/20"
+              >
+                <div className="text-xs font-medium uppercase tracking-wide text-indigo-700 dark:text-indigo-300">Story beat</div>
+                <div className="mt-2 text-base font-semibold text-slate-900 dark:text-slate-100">{item.title}</div>
+                <div className="mt-2 text-sm leading-relaxed text-slate-600 dark:text-slate-300">{item.body}</div>
+              </section>
+            );
+          }
+
           const q = item.quote;
           const isActive = q.id === activeId;
 
@@ -322,7 +365,7 @@ export function TrumpScrolly({ quotes }: Props) {
                         });
                     }}
                     aria-label={`Copy link to quote from ${q.date}`}
-                    className="rounded-md text-[11px] font-medium text-slate-500 hover:text-slate-700 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2 focus-visible:ring-offset-white dark:text-slate-400 dark:hover:text-slate-200 dark:focus-visible:ring-offset-black"
+                    className="qt-focus rounded-md text-[11px] font-medium text-slate-500 hover:text-slate-700 hover:underline dark:text-slate-400 dark:hover:text-slate-200"
                   >
                     <span aria-live="polite">{copiedSlug === q.slug ? 'Copied' : 'Copy link'}</span>
                   </button>
@@ -333,7 +376,7 @@ export function TrumpScrolly({ quotes }: Props) {
                         <Link
                           key={t.slug}
                           href={`/topic/${t.slug}`}
-                          className="rounded-full border border-slate-200/70 bg-white/70 px-2 py-0.5 text-[11px] text-slate-700 hover:bg-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2 focus-visible:ring-offset-white dark:border-white/10 dark:bg-black/20 dark:text-slate-200 dark:focus-visible:ring-offset-black"
+                          className="qt-focus rounded-full border border-slate-200/70 bg-white/70 px-2 py-0.5 text-[11px] text-slate-700 hover:bg-white dark:border-white/10 dark:bg-black/20 dark:text-slate-200"
                         >
                           {t.name}
                         </Link>
