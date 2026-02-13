@@ -54,20 +54,30 @@ export default async function QuotePage({ params }: Props) {
   const base = process.env.NEXT_PUBLIC_SITE_URL ?? 'http://localhost:3000';
   const canonicalUrl = `${base}/quote/${q.slug}`;
 
-  // Minimal JSON-LD to help search engines understand the entity.
+  const personName = person?.name ?? q.personSlug;
+
+  // JSON-LD to help search engines understand the quote page.
+  // We model the page as an Article whose mainEntity is a Quotation.
   const jsonLd = {
     '@context': 'https://schema.org',
-    '@type': 'Quotation',
+    '@type': 'Article',
     '@id': canonicalUrl,
     url: canonicalUrl,
-    text: q.text,
+    headline: `“${q.text}” — ${personName}`,
     datePublished: q.date,
     author: {
       '@type': 'Person',
-      name: person?.name ?? q.personSlug,
+      name: personName,
       url: `${base}/person/${q.personSlug}`,
     },
+    publisher: q.source.publisher
+      ? {
+          '@type': 'Organization',
+          name: q.source.publisher,
+        }
+      : undefined,
     isBasedOn: q.source.url,
+    citation: q.source.url,
     about: q.topics.map((t) => {
       return {
         '@type': 'Thing',
@@ -75,6 +85,12 @@ export default async function QuotePage({ params }: Props) {
         url: `${base}/topic/${t.slug}`,
       };
     }),
+    mainEntity: {
+      '@type': 'Quotation',
+      text: q.text,
+      dateCreated: q.date,
+      isBasedOn: q.source.url,
+    },
   };
 
   return (
