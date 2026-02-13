@@ -14,7 +14,8 @@
     "db:seed": "prisma db seed",
     "db:setup": "npm run prisma:deploy && npm run db:seed",
     "ingest:trumpwhitehouse": "tsx scripts/ingest/trumpwhitehouse-remarks.ts",
-    "ingest:x:trump": "tsx scripts/ingest/x-realDonaldTrump.ts"
+    "ingest:x:trump": "tsx scripts/ingest/x-realDonaldTrump.ts",
+    "market:warm-cache": "tsx scripts/market/warm-cache.ts"
   },
   "dependencies": {
     "@prisma/client": "^5.22.0",
