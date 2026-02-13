@@ -48,6 +48,13 @@ export function TrumpScrolly({ quotes }: Props) {
 
   const [isDesktop, setIsDesktop] = useState(false);
 
+  const [copiedSlug, setCopiedSlug] = useState<string | null>(null);
+  useEffect(() => {
+    if (!copiedSlug) return;
+    const t = window.setTimeout(() => setCopiedSlug(null), 1200);
+    return () => window.clearTimeout(t);
+  }, [copiedSlug]);
+
   useEffect(() => {
     const mq = window.matchMedia('(min-width: 1024px)');
     const onChange = () => setIsDesktop(mq.matches);
@@ -209,7 +216,7 @@ export function TrumpScrolly({ quotes }: Props) {
                     <div className="text-xs text-slate-500 dark:text-slate-400">{q.date}</div>
                     <div className="text-xs text-slate-500 dark:text-slate-400">{q.source.publisher ?? 'Source'}</div>
                   </div>
-                  <div className="mt-2 text-base leading-snug text-slate-900 dark:text-slate-100">
+                  <div className="mt-2 text-base leading-relaxed text-slate-900 dark:text-slate-100">
                     “{q.text}”
                     {isActive ? <span className="sr-only"> (active)</span> : null}
                   </div>
@@ -219,13 +226,25 @@ export function TrumpScrolly({ quotes }: Props) {
                 </Link>
 
                 <div className="flex items-center justify-between gap-3">
-                  <a
-                    href={`#q=${encodeURIComponent(q.slug)}`}
-                    aria-label={`Deep link to quote from ${q.date}`}
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      const url = `${window.location.origin}/#q=${encodeURIComponent(q.slug)}`;
+                      navigator.clipboard
+                        .writeText(url)
+                        .then(() => setCopiedSlug(q.slug))
+                        .catch(() => {
+                          // If clipboard permissions fail, at least update the hash.
+                          window.location.hash = `q=${encodeURIComponent(q.slug)}`;
+                          setCopiedSlug(q.slug);
+                        });
+                    }}
+                    aria-label={`Copy link to quote from ${q.date}`}
                     className="text-[11px] font-medium text-slate-500 hover:text-slate-700 hover:underline dark:text-slate-400 dark:hover:text-slate-200"
                   >
-                    Deep link
-                  </a>
+                    {copiedSlug === q.slug ? 'Copied' : 'Copy link'}
+                  </button>
 
                   {q.topics.length ? (
                     <div className="flex flex-wrap justify-end gap-2">

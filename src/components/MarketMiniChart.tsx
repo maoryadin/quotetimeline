@@ -160,7 +160,7 @@ export function MarketMiniChart({ anchorDate }: Props) {
 
   if (!charts.spx.ready || !charts.vix.ready) {
     return (
-      <div className="space-y-4" aria-busy="true" aria-live="polite">
+      <div className="min-h-[260px] space-y-4" aria-busy="true" aria-live="polite">
         <div className="animate-pulse">
           <div className="flex items-baseline justify-between">
             <div className="h-3 w-24 rounded bg-slate-200/80 dark:bg-white/10" />
@@ -187,7 +187,7 @@ export function MarketMiniChart({ anchorDate }: Props) {
       <div>
         <div className="flex items-baseline justify-between">
           <div className="text-xs font-medium text-slate-700 dark:text-slate-200">S&P 500 (SPX)</div>
-          <div className="text-[11px] text-slate-500 dark:text-slate-400">{charts.spx.last?.toFixed(2)}</div>
+          <div className="text-[11px] tabular-nums text-slate-500 dark:text-slate-400">{charts.spx.last?.toFixed(2)}</div>
         </div>
         <svg
           role="img"
@@ -209,7 +209,7 @@ export function MarketMiniChart({ anchorDate }: Props) {
       <div>
         <div className="flex items-baseline justify-between">
           <div className="text-xs font-medium text-slate-700 dark:text-slate-200">VIX</div>
-          <div className="text-[11px] text-slate-500 dark:text-slate-400">{charts.vix.last?.toFixed(2)}</div>
+          <div className="text-[11px] tabular-nums text-slate-500 dark:text-slate-400">{charts.vix.last?.toFixed(2)}</div>
         </div>
         <svg
           role="img"
