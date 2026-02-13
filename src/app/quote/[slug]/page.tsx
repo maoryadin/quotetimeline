@@ -82,8 +82,8 @@ export default async function QuotePage({ params }: Props) {
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
       <main id="main" className="mx-auto max-w-5xl px-6 py-10">
         <div className="flex items-center justify-between gap-3">
-          <Link href={`/person/${q.personSlug}`} className="text-sm text-slate-600 hover:underline dark:text-slate-300">
-            ← Back
+          <Link href={`/#q=${encodeURIComponent(q.slug)}`} className="text-sm text-slate-600 hover:underline dark:text-slate-300">
+            ← Back to timeline
           </Link>
           <Link href="/search" className="text-sm text-slate-600 hover:underline dark:text-slate-300">
             Search →

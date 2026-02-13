@@ -153,7 +153,7 @@ export function TrumpScrolly({ quotes }: Props) {
 
   return (
     <div className="grid grid-cols-1 gap-6 lg:grid-cols-[360px_1fr]" ref={rootRef}>
-      <aside className="order-1 sticky top-24 lg:order-1 lg:top-24 lg:h-[calc(100vh-7rem)]">
+      <aside className="order-1 lg:sticky lg:top-24 lg:h-[calc(100vh-7rem)]">
         <div className="rounded-2xl border border-slate-200/70 bg-white/60 p-5 shadow-sm lg:h-full dark:border-white/10 dark:bg-black/20">
           <div className="text-xs font-medium uppercase tracking-wide text-slate-500 dark:text-slate-400">Market window</div>
           <div className="mt-2 text-sm text-slate-700 dark:text-slate-200">
