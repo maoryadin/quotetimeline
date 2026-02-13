@@ -229,6 +229,21 @@ export function MarketMiniChart({ anchorDate }: Props) {
 
   return (
     <div className="space-y-4">
+      <div className="flex items-center justify-between gap-3">
+        <div className="text-[11px] font-medium text-slate-500 dark:text-slate-400">7-day window</div>
+        <div
+          className={
+            'rounded-full border px-2 py-0.5 text-[10px] font-medium ' +
+            (dataMode === 'live'
+              ? 'border-emerald-200 bg-emerald-50 text-emerald-700 dark:border-emerald-400/20 dark:bg-emerald-400/10 dark:text-emerald-200'
+              : 'border-amber-200 bg-amber-50 text-amber-800 dark:border-amber-400/20 dark:bg-amber-400/10 dark:text-amber-200')
+          }
+          title={dataMode === 'live' ? 'Loaded from API (cached in Postgres)' : 'Fallback mock series (provider/API unavailable)'}
+        >
+          {dataMode === 'live' ? 'Live' : 'Mock'}
+        </div>
+      </div>
+
       <div>
         <div className="flex items-baseline justify-between">
           <div className="text-xs font-medium text-slate-700 dark:text-slate-200">S&P 500 (SPX)</div>
