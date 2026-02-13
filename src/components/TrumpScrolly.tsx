@@ -251,8 +251,8 @@ export function TrumpScrolly({ quotes, narrativeBlocks }: Props) {
   }
 
   return (
-    <div className="grid grid-cols-1 gap-6 lg:grid-cols-[360px_1fr]" ref={rootRef}>
-      <aside className="order-1 sticky top-20 z-20 lg:top-24 lg:h-[calc(100vh-7rem)]">
+    <div className="grid grid-cols-1 gap-6 lg:grid-cols-[1fr_360px]" ref={rootRef}>
+      <aside className="order-1 lg:order-2 z-20 lg:sticky lg:top-24 lg:h-[calc(100vh-7rem)]">
         <div className="rounded-2xl border border-slate-200/70 bg-white/60 p-5 shadow-sm lg:h-full dark:border-white/10 dark:bg-black/20">
           <div className="text-xs font-medium uppercase tracking-wide text-slate-500 dark:text-slate-400">Market window</div>
           <div className="mt-2 text-sm text-slate-700 dark:text-slate-200">
@@ -328,7 +328,7 @@ export function TrumpScrolly({ quotes, narrativeBlocks }: Props) {
         </div>
       </aside>
 
-      <div ref={feedRef} className="qt-scrollbar order-2 space-y-3 lg:h-[calc(100vh-7rem)] lg:overflow-y-auto lg:pr-2 lg:[scrollbar-gutter:stable]">
+      <div ref={feedRef} className="qt-scrollbar order-2 lg:order-1 space-y-3 lg:h-[calc(100vh-7rem)] lg:overflow-y-auto lg:pr-2 lg:[scrollbar-gutter:stable]">
         {feedItems.map((item) => {
           if (item.kind === 'year') {
             return (
