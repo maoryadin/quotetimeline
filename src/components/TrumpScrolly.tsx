@@ -111,6 +111,8 @@ export function TrumpScrolly({ quotes, narrativeBlocks }: Props) {
   const [isDesktop, setIsDesktop] = useState(false);
   const [reduceMotion, setReduceMotion] = useState(false);
 
+  const scrollBehavior: ScrollBehavior = reduceMotion ? 'auto' : 'smooth';
+
   const [copiedSlug, setCopiedSlug] = useState<string | null>(null);
   useEffect(() => {
     if (!copiedSlug) return;
@@ -134,22 +136,42 @@ export function TrumpScrolly({ quotes, narrativeBlocks }: Props) {
     return () => mq.removeEventListener('change', onChange);
   }, []);
 
-  // If the page loads with a hash, scroll that quote into view inside the feed.
-  useEffect(() => {
+  const scrollToSlug = (slug: string, behavior?: ScrollBehavior) => {
     const feed = feedRef.current;
     if (!feed || !quotes.length) return;
-
-    const slug = parseSlugFromHash(window.location.hash);
-    if (!slug) return;
 
     const target = quotes.find((q) => q.slug === slug);
     if (!target) return;
 
+    // Ensure active panel updates immediately.
+    setActiveId(target.id);
+
     requestAnimationFrame(() => {
       const el = feed.querySelector<HTMLElement>(`[data-quote-id="${target.id}"]`);
-      el?.scrollIntoView({ block: 'center' });
+      el?.scrollIntoView({ block: 'center', behavior });
     });
+  };
+
+  // If the page loads with a hash, scroll that quote into view inside the feed.
+  useEffect(() => {
+    const slug = parseSlugFromHash(window.location.hash);
+    if (!slug) return;
+    scrollToSlug(slug);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [quotes, isDesktop]);
+
+  // If the hash changes (e.g., user clicks a shared link), follow it.
+  useEffect(() => {
+    const onHashChange = () => {
+      const slug = parseSlugFromHash(window.location.hash);
+      if (!slug) return;
+      scrollToSlug(slug, scrollBehavior);
+    };
+
+    window.addEventListener('hashchange', onHashChange);
+    return () => window.removeEventListener('hashchange', onHashChange);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [quotes, isDesktop, reduceMotion]);
 
   useEffect(() => {
     const root = rootRef.current;
@@ -228,25 +250,28 @@ export function TrumpScrolly({ quotes, narrativeBlocks }: Props) {
     return <div className="text-sm text-slate-600 dark:text-slate-300">No quotes yet.</div>;
   }
 
-  const scrollBehavior: ScrollBehavior = reduceMotion ? 'auto' : 'smooth';
-
   return (
     <div className="grid grid-cols-1 gap-6 lg:grid-cols-[360px_1fr]" ref={rootRef}>
-      <aside className="order-1 lg:sticky lg:top-24 lg:h-[calc(100vh-7rem)]">
+      <aside className="order-1 sticky top-20 z-20 lg:top-24 lg:h-[calc(100vh-7rem)]">
         <div className="rounded-2xl border border-slate-200/70 bg-white/60 p-5 shadow-sm lg:h-full dark:border-white/10 dark:bg-black/20">
           <div className="text-xs font-medium uppercase tracking-wide text-slate-500 dark:text-slate-400">Market window</div>
           <div className="mt-2 text-sm text-slate-700 dark:text-slate-200">
             {activeQuote ? (
               <>
-                <div className="font-semibold">7D around {activeQuote.date}</div>
-                <div className="mt-1 text-xs text-slate-500 dark:text-slate-400">The chart stays put while you scroll the timeline.</div>
-                <div className="mt-3 flex flex-wrap gap-2">
+                <div className="flex items-start justify-between gap-3">
+                  <div>
+                    <div className="font-semibold">7D around {activeQuote.date}</div>
+                    <div className="mt-1 text-xs text-slate-500 dark:text-slate-400">Updates as you scroll.</div>
+                  </div>
                   <Link
                     href={`/quote/${activeQuote.slug}`}
-                    className="rounded-lg border border-slate-200/70 bg-white/70 px-3 py-1.5 text-[11px] font-medium text-indigo-700 hover:bg-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2 focus-visible:ring-offset-white dark:border-white/10 dark:bg-black/20 dark:text-indigo-300 dark:hover:bg-black/30 dark:focus-visible:ring-offset-black"
+                    className="qt-focus shrink-0 rounded-lg border border-slate-200/70 bg-white/70 px-3 py-1.5 text-[11px] font-medium text-indigo-700 hover:bg-white dark:border-white/10 dark:bg-black/20 dark:text-indigo-300 dark:hover:bg-black/30"
                   >
-                    Open quote
+                    Open
                   </Link>
+                </div>
+
+                <div className="mt-3 flex flex-wrap gap-2">
                   <button
                     type="button"
                     onClick={() => {
@@ -255,7 +280,7 @@ export function TrumpScrolly({ quotes, narrativeBlocks }: Props) {
                       const el = feed.querySelector<HTMLElement>(`[data-quote-id="${activeQuote.id}"]`);
                       el?.scrollIntoView({ block: 'center', behavior: scrollBehavior });
                     }}
-                    className="rounded-lg border border-slate-200/70 bg-white/70 px-3 py-1.5 text-[11px] font-medium text-slate-700 hover:bg-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2 focus-visible:ring-offset-white dark:border-white/10 dark:bg-black/20 dark:text-slate-200 dark:hover:bg-black/30 dark:focus-visible:ring-offset-black"
+                    className="qt-focus rounded-lg border border-slate-200/70 bg-white/70 px-3 py-1.5 text-[11px] font-medium text-slate-700 hover:bg-white dark:border-white/10 dark:bg-black/20 dark:text-slate-200 dark:hover:bg-black/30"
                   >
                     Jump to active
                   </button>
@@ -269,7 +294,7 @@ export function TrumpScrolly({ quotes, narrativeBlocks }: Props) {
                         window.scrollTo({ top: 0, behavior: scrollBehavior });
                       }
                     }}
-                    className="rounded-lg border border-slate-200/70 bg-white/70 px-3 py-1.5 text-[11px] font-medium text-slate-700 hover:bg-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2 focus-visible:ring-offset-white dark:border-white/10 dark:bg-black/20 dark:text-slate-200 dark:hover:bg-black/30 dark:focus-visible:ring-offset-black"
+                    className="qt-focus rounded-lg border border-slate-200/70 bg-white/70 px-3 py-1.5 text-[11px] font-medium text-slate-700 hover:bg-white dark:border-white/10 dark:bg-black/20 dark:text-slate-200 dark:hover:bg-black/30"
                   >
                     Top
                   </button>
@@ -278,22 +303,28 @@ export function TrumpScrolly({ quotes, narrativeBlocks }: Props) {
             ) : null}
           </div>
 
-          <div className="mt-4" aria-live="polite">
-            {activeQuote ? <MarketMiniChart anchorDate={activeQuote.date} /> : null}
-          </div>
+          <details className="mt-4" open={isDesktop}>
+            <summary className="cursor-pointer select-none text-xs font-medium text-slate-600 hover:text-slate-800 dark:text-slate-300 dark:hover:text-slate-100">
+              Market chart + tips
+            </summary>
 
-          <div className="mt-4 rounded-xl border border-slate-200/70 bg-white/70 p-3 text-xs text-slate-600 dark:border-white/10 dark:bg-black/20 dark:text-slate-300">
-            <div className="font-medium text-slate-700 dark:text-slate-200">How to use this view</div>
-            <ul className="mt-2 list-disc space-y-1 pl-4">
-              <li>Scroll the quote feed; the market window updates automatically.</li>
-              <li>Use “Copy link” to share the exact scroll position.</li>
-              <li>Click a quote to see the primary source.</li>
-            </ul>
-          </div>
+            <div className="mt-3" aria-live="polite">
+              {activeQuote ? <MarketMiniChart anchorDate={activeQuote.date} /> : null}
+            </div>
 
-          <div className="mt-4 text-xs text-slate-500 dark:text-slate-400">
-            Data note: MVP uses free market data (S&P 500, VIX) and caches daily points in Postgres.
-          </div>
+            <div className="mt-4 rounded-xl border border-slate-200/70 bg-white/70 p-3 text-xs text-slate-600 dark:border-white/10 dark:bg-black/20 dark:text-slate-300">
+              <div className="font-medium text-slate-700 dark:text-slate-200">How to use this view</div>
+              <ul className="mt-2 list-disc space-y-1 pl-4">
+                <li>Scroll the quote feed; the market window updates automatically.</li>
+                <li>Use “Copy link” to share the exact scroll position.</li>
+                <li>Click a quote to see the primary source.</li>
+              </ul>
+            </div>
+
+            <div className="mt-4 text-xs text-slate-500 dark:text-slate-400">
+              Data note: MVP uses free market data (S&P 500, VIX) and caches daily points in Postgres.
+            </div>
+          </details>
         </div>
       </aside>
 
