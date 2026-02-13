@@ -7,7 +7,7 @@ import { SiteHeader } from '@/components/SiteHeader';
 import { SiteFooter } from '@/components/SiteFooter';
 import { SearchBar } from '@/components/SearchBar';
 import { TrumpScrolly } from '@/components/TrumpScrolly';
-import { getPersonBySlug, getQuoteCountByPerson, getQuotesByPerson, getTopTopicsByPerson } from '@/lib/data';
+import { getPersonBySlug, getQuoteCountByPerson, getQuotesByPerson, getTopTopicsByPerson, getYearsForPerson } from '@/lib/data';
 
 function toPage(s: string | undefined) {
   const n = Number(s);
@@ -15,19 +15,37 @@ function toPage(s: string | undefined) {
   return Math.floor(n);
 }
 
+function toYear(s: string | undefined) {
+  if (!s) return null;
+  const n = Number(s);
+  if (!Number.isFinite(n)) return null;
+  const year = Math.floor(n);
+  if (year < 1900 || year > 2100) return null;
+  return year;
+}
+
 type Props = {
-  searchParams?: Promise<{ page?: string }>;
+  searchParams?: Promise<{ page?: string; year?: string }>;
 };
 
 export async function generateMetadata({ searchParams }: Props): Promise<Metadata> {
   const base = process.env.NEXT_PUBLIC_SITE_URL ?? 'http://localhost:3000';
   const sp = (await searchParams) ?? {};
   const page = toPage(sp.page);
+  const year = toYear(sp.year);
 
-  const canonical = page > 1 ? `${base}/?page=${page}` : `${base}/`;
+  const params = new URLSearchParams();
+  if (page > 1) params.set('page', String(page));
+  if (year) params.set('year', String(year));
 
-  const title = 'Donald J. Trump timeline (sourced quotes) | QuoteTimeline';
-  const description = 'A neutral, source-first timeline of verbatim public quotes by Donald J. Trump, with dates and primary sources.';
+  const canonical = params.size ? `${base}/?${params.toString()}` : `${base}/`;
+
+  const title = year
+    ? `Trump timeline (${year}) — sourced quotes | QuoteTimeline`
+    : 'Donald J. Trump timeline (sourced quotes) | QuoteTimeline';
+  const description = year
+    ? `A neutral, source-first timeline of verbatim public quotes by Donald J. Trump in ${year}, with dates and primary sources.`
+    : 'A neutral, source-first timeline of verbatim public quotes by Donald J. Trump, with dates and primary sources.';
 
   return {
     title,
@@ -42,17 +60,28 @@ export async function generateMetadata({ searchParams }: Props): Promise<Metadat
 export default async function Home({ searchParams }: Props) {
   const sp = (await searchParams) ?? {};
   const page = toPage(sp.page);
+  const year = toYear(sp.year);
 
   const trumpSlug = 'donald-trump';
   const pageSize = 50;
 
+  const pageHref = (targetPage: number, nextYear?: number | null) => {
+    const params = new URLSearchParams();
+    if (targetPage > 1) params.set('page', String(targetPage));
+    const y = nextYear ?? year;
+    if (y) params.set('year', String(y));
+    const qs = params.toString();
+    return qs ? `/?${qs}` : '/';
+  };
+
   const p = await getPersonBySlug(trumpSlug);
   if (!p) return notFound();
 
-  const [quotes, topTopics, totalQuotes] = await Promise.all([
-    getQuotesByPerson(trumpSlug, { page, pageSize }),
+  const [quotes, topTopics, totalQuotes, years] = await Promise.all([
+    getQuotesByPerson(trumpSlug, { page, pageSize }, { year: year ?? undefined }),
     getTopTopicsByPerson(trumpSlug, 12),
-    getQuoteCountByPerson(trumpSlug),
+    getQuoteCountByPerson(trumpSlug, { year: year ?? undefined }),
+    getYearsForPerson(trumpSlug),
   ]);
 
   return (
@@ -101,7 +130,49 @@ export default async function Home({ searchParams }: Props) {
 
         <section className="mt-10" id="quotes">
           <div className="flex flex-wrap items-baseline justify-between gap-3">
-            <h2 className="text-lg font-semibold">Timeline</h2>
+            <div className="flex flex-wrap items-baseline gap-3">
+              <h2 className="text-lg font-semibold">Timeline</h2>
+
+              {years.length ? (
+                <div className="text-xs text-slate-500 dark:text-slate-400">
+                  <span className="sr-only">Filter timeline by year</span>
+                  <div className="inline-flex items-center gap-2 rounded-full border border-slate-200/70 bg-white/70 px-3 py-1 dark:border-white/10 dark:bg-black/20">
+                    <span className="font-medium text-slate-600 dark:text-slate-300">Year</span>
+                    <div className="h-3 w-px bg-slate-200 dark:bg-white/10" aria-hidden="true" />
+                    <div className="flex flex-wrap gap-2">
+                      <Link
+                        href={pageHref(page, null)}
+                        className={
+                          'qt-focus rounded-full px-2 py-0.5 text-[11px] ' +
+                          (year == null
+                            ? 'bg-slate-900 text-white dark:bg-white dark:text-slate-900'
+                            : 'text-slate-600 hover:underline dark:text-slate-300')
+                        }
+                      >
+                        All
+                      </Link>
+
+                      {years.slice(0, 6).map((y) => (
+                        <Link
+                          key={y.year}
+                          href={pageHref(page, y.year)}
+                          className={
+                            'qt-focus rounded-full px-2 py-0.5 text-[11px] ' +
+                            (year === y.year
+                              ? 'bg-slate-900 text-white dark:bg-white dark:text-slate-900'
+                              : 'text-slate-600 hover:underline dark:text-slate-300')
+                          }
+                          aria-current={year === y.year ? 'true' : undefined}
+                        >
+                          {y.year}
+                        </Link>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              ) : null}
+            </div>
+
             <div className="text-sm text-slate-600 dark:text-slate-300">
               Page {page} of {Math.max(1, Math.ceil(totalQuotes / pageSize))} • {totalQuotes} total
             </div>
@@ -153,7 +224,7 @@ export default async function Home({ searchParams }: Props) {
                 {page > 1 ? (
                   <Link
                     className="rounded-xl border border-slate-200/70 bg-white/60 px-4 py-2 text-sm shadow-sm hover:bg-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2 focus-visible:ring-offset-white dark:border-white/10 dark:bg-black/20 dark:focus-visible:ring-offset-black"
-                    href={`/?page=${page - 1}#quotes`}
+                    href={`${pageHref(page - 1)}#quotes`}
                   >
                     ← Newer
                   </Link>
@@ -164,7 +235,7 @@ export default async function Home({ searchParams }: Props) {
                 {page * pageSize < totalQuotes ? (
                   <Link
                     className="rounded-xl border border-slate-200/70 bg-white/60 px-4 py-2 text-sm shadow-sm hover:bg-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2 focus-visible:ring-offset-white dark:border-white/10 dark:bg-black/20 dark:focus-visible:ring-offset-black"
-                    href={`/?page=${page + 1}#quotes`}
+                    href={`${pageHref(page + 1)}#quotes`}
                   >
                     Older →
                   </Link>
