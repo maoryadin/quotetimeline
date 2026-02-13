@@ -49,8 +49,8 @@ function toPolyline(points: Point[], width: number, height: number) {
 }
 
 function mockSeries(symbol: string, anchorDate: string): SeriesResponse {
-  // Deterministic mock so UI works even before the real market cache is wired.
-  // (This also serves as a graceful fallback if the free provider is down.)
+  // Deterministic mock so the scrolly UI stays interactive if /api/market (or the free providers)
+  // are temporarily unavailable. Real data is fetched server-side and cached in Postgres.
   const seed = Array.from(`${symbol}:${anchorDate}`).reduce((acc, ch) => acc + ch.charCodeAt(0), 0);
   const base = symbol.includes('vix') ? 18 : symbol.includes('vxx') ? 18 : symbol.includes('spx') ? 6800 : 470;
 
@@ -228,7 +228,7 @@ export function MarketMiniChart({ anchorDate }: Props) {
         </svg>
       </div>
 
-      <div className="text-[11px] text-slate-500 dark:text-slate-400">Free data via FRED/Stooq CSV • Cached in DB</div>
+      <div className="text-[11px] text-slate-500 dark:text-slate-400">Free data via FRED/Stooq CSV • Cached in Postgres</div>
     </div>
   );
 }
