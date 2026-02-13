@@ -143,6 +143,7 @@ type Props = {
 export function MarketMiniChart({ anchorDate }: Props) {
   const [spx, setSpx] = useState<{ anchorDate: string; series: SeriesResponse } | null>(null);
   const [vix, setVix] = useState<{ anchorDate: string; series: SeriesResponse } | null>(null);
+  const [dataMode, setDataMode] = useState<'live' | 'mock'>('live');
 
   useEffect(() => {
     let cancelled = false;
@@ -152,12 +153,14 @@ export function MarketMiniChart({ anchorDate }: Props) {
       Promise.all([fetchSeriesCached('^spx', anchorDate), fetchSeriesCached('^vix', anchorDate)])
         .then(([a, b]) => {
           if (cancelled) return;
+          setDataMode('live');
           setSpx({ anchorDate, series: a });
           setVix({ anchorDate, series: b });
         })
         .catch(() => {
           // Graceful fallback: keep the UI interactive even if the API/provider is down.
           if (cancelled) return;
+          setDataMode('mock');
           setSpx({ anchorDate, series: mockSeries('^spx', anchorDate) });
           setVix({ anchorDate, series: mockSeries('^vix', anchorDate) });
         });
@@ -280,7 +283,10 @@ export function MarketMiniChart({ anchorDate }: Props) {
         <div className="mt-2 text-slate-500 dark:text-slate-400">Note: based on available daily closes in the 7D window.</div>
       </div>
 
-      <div className="text-[11px] text-slate-500 dark:text-slate-400">Free data via FRED/Stooq CSV • Cached in Postgres</div>
+      <div className="text-[11px] text-slate-500 dark:text-slate-400">
+        Free data via FRED/Stooq CSV • Cached in Postgres
+        {dataMode === 'mock' ? ' • Showing deterministic fallback data (provider temporarily unavailable)' : ''}
+      </div>
     </div>
   );
 }
