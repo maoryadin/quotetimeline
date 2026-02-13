@@ -78,19 +78,19 @@ export default async function Home({ searchParams }: Props) {
 
             <div className="mt-6 flex flex-wrap gap-2">
               <Link
-                className="rounded-xl bg-slate-900 px-4 py-2 text-sm font-medium text-white hover:bg-slate-800 dark:bg-white dark:text-slate-900"
+                className="rounded-xl bg-slate-900 px-4 py-2 text-sm font-medium text-white hover:bg-slate-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2 focus-visible:ring-offset-white dark:bg-white dark:text-slate-900 dark:focus-visible:ring-offset-black"
                 href="#quotes"
               >
                 Start scrolling
               </Link>
               <Link
-                className="rounded-xl border border-slate-200 bg-white/80 px-4 py-2 text-sm font-medium text-slate-900 hover:bg-white dark:border-white/10 dark:bg-black/20 dark:text-slate-100"
+                className="rounded-xl border border-slate-200 bg-white/80 px-4 py-2 text-sm font-medium text-slate-900 hover:bg-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2 focus-visible:ring-offset-white dark:border-white/10 dark:bg-black/20 dark:text-slate-100 dark:focus-visible:ring-offset-black"
                 href="/story"
               >
                 Story mode (100 quotes)
               </Link>
               <Link
-                className="rounded-xl border border-slate-200 bg-white/80 px-4 py-2 text-sm font-medium text-slate-900 hover:bg-white dark:border-white/10 dark:bg-black/20 dark:text-slate-100"
+                className="rounded-xl border border-slate-200 bg-white/80 px-4 py-2 text-sm font-medium text-slate-900 hover:bg-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2 focus-visible:ring-offset-white dark:border-white/10 dark:bg-black/20 dark:text-slate-100 dark:focus-visible:ring-offset-black"
                 href="/trending"
               >
                 Trending topics
@@ -117,7 +117,7 @@ export default async function Home({ searchParams }: Props) {
                 {quotes.map((q) => (
                   <li
                     key={q.id}
-                    className="rounded-2xl border border-slate-200/70 bg-white/60 p-5 shadow-sm hover:bg-white dark:border-white/10 dark:bg-black/20"
+                    className="rounded-2xl border border-slate-200/70 bg-white/60 p-5 shadow-sm hover:bg-white focus-within:ring-2 focus-within:ring-indigo-500 focus-within:ring-offset-2 focus-within:ring-offset-white dark:border-white/10 dark:bg-black/20 dark:focus-within:ring-offset-black"
                   >
                     <div className="space-y-3">
                       <Link href={`/quote/${q.slug}`} className="block">
@@ -152,7 +152,7 @@ export default async function Home({ searchParams }: Props) {
               <div className="mt-6 flex items-center justify-between gap-3">
                 {page > 1 ? (
                   <Link
-                    className="rounded-xl border border-slate-200/70 bg-white/60 px-4 py-2 text-sm shadow-sm hover:bg-white dark:border-white/10 dark:bg-black/20"
+                    className="rounded-xl border border-slate-200/70 bg-white/60 px-4 py-2 text-sm shadow-sm hover:bg-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2 focus-visible:ring-offset-white dark:border-white/10 dark:bg-black/20 dark:focus-visible:ring-offset-black"
                     href={`/?page=${page - 1}#quotes`}
                   >
                     ← Newer
@@ -163,7 +163,7 @@ export default async function Home({ searchParams }: Props) {
 
                 {page * pageSize < totalQuotes ? (
                   <Link
-                    className="rounded-xl border border-slate-200/70 bg-white/60 px-4 py-2 text-sm shadow-sm hover:bg-white dark:border-white/10 dark:bg-black/20"
+                    className="rounded-xl border border-slate-200/70 bg-white/60 px-4 py-2 text-sm shadow-sm hover:bg-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2 focus-visible:ring-offset-white dark:border-white/10 dark:bg-black/20 dark:focus-visible:ring-offset-black"
                     href={`/?page=${page + 1}#quotes`}
                   >
                     Older →
@@ -190,7 +190,7 @@ export default async function Home({ searchParams }: Props) {
             {topTopics.map((t) => (
               <li
                 key={t.slug}
-                className="rounded-2xl border border-slate-200/70 bg-white/60 p-5 shadow-sm hover:bg-white dark:border-white/10 dark:bg-black/20"
+                className="rounded-2xl border border-slate-200/70 bg-white/60 p-5 shadow-sm hover:bg-white focus-within:ring-2 focus-within:ring-indigo-500 focus-within:ring-offset-2 focus-within:ring-offset-white dark:border-white/10 dark:bg-black/20 dark:focus-within:ring-offset-black"
               >
                 <Link className="block" href={`/topic/${t.slug}`}>
                   <div className="text-base font-semibold text-slate-900 dark:text-slate-100">{t.name}</div>
