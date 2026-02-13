@@ -34,6 +34,12 @@ a {
   text-underline-offset: 3px;
 }
 
+@media (prefers-reduced-motion: reduce) {
+  .animate-pulse {
+    animation: none !important;
+  }
+}
+
 /* Hide scrollbars for small horizontal navs (mobile polish). */
 .no-scrollbar {
   scrollbar-width: none; /* Firefox */

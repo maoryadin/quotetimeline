@@ -189,8 +189,20 @@ export function MarketMiniChart({ anchorDate }: Props) {
           <div className="text-xs font-medium text-slate-700 dark:text-slate-200">S&P 500 (SPX)</div>
           <div className="text-[11px] text-slate-500 dark:text-slate-400">{charts.spx.last?.toFixed(2)}</div>
         </div>
-        <svg viewBox={`0 0 ${charts.width} ${charts.height}`} className="mt-2 h-20 w-full">
-          <polyline fill="none" strokeWidth="2" stroke="currentColor" className="text-indigo-600" points={charts.spx.polyline} />
+        <svg
+          role="img"
+          aria-label={`S&P 500 sparkline for 7 days around ${anchorDate}`}
+          viewBox={`0 0 ${charts.width} ${charts.height}`}
+          className="mt-2 h-20 w-full"
+        >
+          <title>{`S&P 500 (SPX) 7-day window around ${anchorDate}`}</title>
+          <polyline
+            fill="none"
+            strokeWidth="2"
+            stroke="currentColor"
+            className="text-indigo-600"
+            points={charts.spx.polyline}
+          />
         </svg>
       </div>
 
@@ -199,12 +211,24 @@ export function MarketMiniChart({ anchorDate }: Props) {
           <div className="text-xs font-medium text-slate-700 dark:text-slate-200">VIX</div>
           <div className="text-[11px] text-slate-500 dark:text-slate-400">{charts.vix.last?.toFixed(2)}</div>
         </div>
-        <svg viewBox={`0 0 ${charts.width} ${charts.height}`} className="mt-2 h-20 w-full">
-          <polyline fill="none" strokeWidth="2" stroke="currentColor" className="text-fuchsia-600" points={charts.vix.polyline} />
+        <svg
+          role="img"
+          aria-label={`VIX sparkline for 7 days around ${anchorDate}`}
+          viewBox={`0 0 ${charts.width} ${charts.height}`}
+          className="mt-2 h-20 w-full"
+        >
+          <title>{`VIX 7-day window around ${anchorDate}`}</title>
+          <polyline
+            fill="none"
+            strokeWidth="2"
+            stroke="currentColor"
+            className="text-fuchsia-600"
+            points={charts.vix.polyline}
+          />
         </svg>
       </div>
 
-      <div className="text-[11px] text-slate-500 dark:text-slate-400">Free data via Stooq CSV • Cached in DB</div>
+      <div className="text-[11px] text-slate-500 dark:text-slate-400">Free data via FRED/Stooq CSV • Cached in DB</div>
     </div>
   );
 }

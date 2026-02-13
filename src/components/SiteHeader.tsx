@@ -43,14 +43,20 @@ export function SiteHeader() {
           href="/"
           className="group flex items-center gap-2 rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2 focus-visible:ring-offset-white dark:focus-visible:ring-offset-black"
         >
-          <div className="h-9 w-9 rounded-xl bg-gradient-to-br from-indigo-600 to-fuchsia-600 shadow-sm" />
+          <div
+            aria-hidden="true"
+            className="h-9 w-9 rounded-xl bg-gradient-to-br from-indigo-600 to-fuchsia-600 shadow-sm"
+          />
           <div>
             <div className="text-sm font-semibold tracking-tight">{SITE.name}</div>
             <div className="text-xs text-slate-500 dark:text-slate-400">Trump quotes • dates • sources</div>
           </div>
         </Link>
 
-        <nav className="no-scrollbar flex max-w-[65vw] items-center gap-1 overflow-x-auto whitespace-nowrap text-sm sm:max-w-none sm:gap-2">
+        <nav
+          aria-label="Primary"
+          className="no-scrollbar flex max-w-[65vw] items-center gap-1 overflow-x-auto whitespace-nowrap text-sm sm:max-w-none sm:gap-2"
+        >
           <Link href="/" aria-current={isActive('/') ? 'page' : undefined} className={navLinkClass(isActive('/'))}>
             Timeline
           </Link>
