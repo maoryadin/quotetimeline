@@ -9,6 +9,10 @@ type Props = {
   quotes: QuoteView[];
 };
 
+type FeedItem =
+  | { kind: 'year'; year: string; key: string }
+  | { kind: 'quote'; quote: QuoteView; key: string };
+
 export function TrumpScrolly({ quotes }: Props) {
   const parseSlugFromHash = (rawHash: string) => {
     const hash = rawHash.replace(/^#/, '');
@@ -42,6 +46,22 @@ export function TrumpScrolly({ quotes }: Props) {
     const q = quotes.find((x) => x.id === activeId);
     return q ?? quotes[0] ?? null;
   }, [activeId, quotes]);
+
+  const feedItems: FeedItem[] = useMemo(() => {
+    let lastYear = '';
+    const items: FeedItem[] = [];
+
+    for (const q of quotes) {
+      const year = (q.date || '').slice(0, 4) || 'Unknown year';
+      if (year !== lastYear) {
+        items.push({ kind: 'year', year, key: `year-${year}` });
+        lastYear = year;
+      }
+      items.push({ kind: 'quote', quote: q, key: q.id });
+    }
+
+    return items;
+  }, [quotes]);
 
   // Keep the URL hash in sync with the active quote so scrolly positions are shareable.
   // Debounce to avoid jank while the IntersectionObserver rapidly changes "active" during fast scroll.
@@ -178,11 +198,8 @@ export function TrumpScrolly({ quotes }: Props) {
             {activeQuote ? (
               <>
                 <div className="font-semibold">7D around {activeQuote.date}</div>
-                <div className="mt-1 text-xs text-slate-500 dark:text-slate-400">Chart stays put while you scroll quotes.</div>
-                <Link
-                  href={`/quote/${activeQuote.slug}`}
-                  className="mt-2 block text-xs font-medium text-indigo-700 hover:underline dark:text-indigo-300"
-                >
+                <div className="mt-1 text-xs text-slate-500 dark:text-slate-400">The chart stays put while you scroll the timeline.</div>
+                <Link href={`/quote/${activeQuote.slug}`} className="mt-2 block text-xs font-medium text-indigo-700 hover:underline dark:text-indigo-300">
                   Open active quote →
                 </Link>
               </>
@@ -193,36 +210,49 @@ export function TrumpScrolly({ quotes }: Props) {
             {activeQuote ? <MarketMiniChart anchorDate={activeQuote.date} /> : null}
           </div>
 
+          <div className="mt-4 rounded-xl border border-slate-200/70 bg-white/70 p-3 text-xs text-slate-600 dark:border-white/10 dark:bg-black/20 dark:text-slate-300">
+            <div className="font-medium text-slate-700 dark:text-slate-200">How to use this view</div>
+            <ul className="mt-2 list-disc space-y-1 pl-4">
+              <li>Scroll the quote feed; the market window updates automatically.</li>
+              <li>Use “Copy link” to share the exact scroll position.</li>
+              <li>Click a quote to see the primary source.</li>
+            </ul>
+          </div>
+
           <div className="mt-4 text-xs text-slate-500 dark:text-slate-400">
             Data note: MVP uses free market data (S&P 500, VIX) and caches daily points in Postgres.
           </div>
         </div>
       </aside>
 
-      <div
-        ref={feedRef}
-        className="qt-scrollbar order-2 space-y-3 lg:order-2 lg:h-[calc(100vh-7rem)] lg:overflow-y-auto lg:pr-2 lg:[scrollbar-gutter:stable]"
-      >
-        {quotes.map((q) => {
+      <div ref={feedRef} className="qt-scrollbar order-2 space-y-3 lg:h-[calc(100vh-7rem)] lg:overflow-y-auto lg:pr-2 lg:[scrollbar-gutter:stable]">
+        {feedItems.map((item) => {
+          if (item.kind === 'year') {
+            return (
+              <div
+                key={item.key}
+                className="sticky top-0 z-10 -mx-1 rounded-xl border border-slate-200/70 bg-white/80 px-4 py-2 text-xs font-semibold text-slate-700 shadow-sm backdrop-blur dark:border-white/10 dark:bg-black/40 dark:text-slate-200"
+              >
+                {item.year}
+              </div>
+            );
+          }
+
+          const q = item.quote;
           const isActive = q.id === activeId;
+
           return (
             <article
-              key={q.id}
+              key={item.key}
               id={`quote-${q.slug}`}
               data-quote-id={q.id}
               className={
                 'rounded-2xl border bg-white/60 p-5 shadow-sm transition-colors focus-within:ring-2 focus-within:ring-indigo-500 focus-within:ring-offset-2 focus-within:ring-offset-white dark:bg-black/20 dark:focus-within:ring-offset-black ' +
-                (isActive
-                  ? 'border-indigo-300/70 bg-white shadow-md dark:border-white/20'
-                  : 'border-slate-200/70 hover:bg-white dark:border-white/10')
+                (isActive ? 'border-indigo-300/70 bg-white shadow-md dark:border-white/20' : 'border-slate-200/70 hover:bg-white dark:border-white/10')
               }
             >
               <div className="space-y-3">
-                <Link
-                  href={`/quote/${q.slug}`}
-                  className="block"
-                  aria-current={isActive ? 'true' : undefined}
-                >
+                <Link href={`/quote/${q.slug}`} className="block" aria-current={isActive ? 'true' : undefined}>
                   <div className="flex items-baseline justify-between gap-3">
                     <div className="text-xs text-slate-500 dark:text-slate-400">{q.date}</div>
                     <div className="text-xs text-slate-500 dark:text-slate-400">{q.source.publisher ?? 'Source'}</div>
@@ -231,9 +261,7 @@ export function TrumpScrolly({ quotes }: Props) {
                     “{q.text}”
                     {isActive ? <span className="sr-only"> (active)</span> : null}
                   </div>
-                  {q.context ? (
-                    <div className="mt-2 line-clamp-2 text-sm text-slate-600 dark:text-slate-300">{q.context}</div>
-                  ) : null}
+                  {q.context ? <div className="mt-2 line-clamp-2 text-sm text-slate-600 dark:text-slate-300">{q.context}</div> : null}
                 </Link>
 
                 <div className="flex items-center justify-between gap-3">
@@ -271,7 +299,6 @@ export function TrumpScrolly({ quotes }: Props) {
                     </div>
                   ) : null}
                 </div>
-
               </div>
             </article>
           );
