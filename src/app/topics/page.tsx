@@ -52,7 +52,7 @@ export default async function TopicsPage() {
               {topics.map((t) => (
                 <li
                   key={t.slug}
-                  className="rounded-2xl border border-slate-200/70 bg-white/60 p-5 shadow-sm hover:bg-white focus-within:ring-2 focus-within:ring-indigo-500 focus-within:ring-offset-2 focus-within:ring-offset-white dark:border-white/10 dark:bg-black/20 dark:focus-within:ring-offset-black"
+                  className="rounded-2xl border border-slate-200/70 bg-white/60 p-5 shadow-sm hover:bg-white focus-within:ring-2 focus-within:ring-indigo-500 focus-within:ring-offset-2 focus-within:ring-offset-[rgb(var(--background))] dark:border-white/10 dark:bg-black/20"
                 >
                   <div className="flex items-center justify-between gap-3">
                     <Link
@@ -70,7 +70,12 @@ export default async function TopicsPage() {
               ))}
             </ul>
           ) : (
-            <div className="text-sm text-slate-600 dark:text-slate-300">No topics found yet.</div>
+            <div className="rounded-2xl border border-slate-200/70 bg-white/60 p-6 text-sm text-slate-600 shadow-sm dark:border-white/10 dark:bg-black/20 dark:text-slate-300">
+              No topics yet.
+              <div className="mt-2 text-xs text-slate-500 dark:text-slate-400">
+                Topics appear as soon as quotes are ingested and tagged.
+              </div>
+            </div>
           )}
         </section>
 

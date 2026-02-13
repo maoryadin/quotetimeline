@@ -163,7 +163,7 @@ export default async function TopicPage({ params, searchParams }: Props) {
             {quotes.map((q) => (
               <li
                 key={q.id}
-                className="rounded-2xl border border-slate-200/70 bg-white/60 p-5 shadow-sm hover:bg-white focus-within:ring-2 focus-within:ring-indigo-500 focus-within:ring-offset-2 focus-within:ring-offset-white dark:border-white/10 dark:bg-black/20 dark:focus-within:ring-offset-black"
+                className="rounded-2xl border border-slate-200/70 bg-white/60 p-5 shadow-sm hover:bg-white focus-within:ring-2 focus-within:ring-indigo-500 focus-within:ring-offset-2 focus-within:ring-offset-[rgb(var(--background))] dark:border-white/10 dark:bg-black/20"
               >
                 <Link href={`/quote/${q.slug}`} className="block">
                   <div className="flex items-baseline justify-between gap-3">

@@ -363,7 +363,7 @@ export function TrumpScrolly({ quotes, narrativeBlocks }: Props) {
               id={`quote-${q.slug}`}
               data-quote-id={q.id}
               className={
-                'rounded-2xl border bg-white/60 p-5 shadow-sm transition-colors focus-within:ring-2 focus-within:ring-indigo-500 focus-within:ring-offset-2 focus-within:ring-offset-white dark:bg-black/20 dark:focus-within:ring-offset-black ' +
+                'rounded-2xl border bg-white/60 p-5 shadow-sm transition-colors focus-within:ring-2 focus-within:ring-indigo-500 focus-within:ring-offset-2 focus-within:ring-offset-[rgb(var(--background))] dark:bg-black/20 ' +
                 (isActive ? 'border-indigo-300/70 bg-white shadow-md dark:border-white/20' : 'border-slate-200/70 hover:bg-white dark:border-white/10')
               }
             >
