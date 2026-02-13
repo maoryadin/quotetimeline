@@ -7,6 +7,7 @@ import { SiteHeader } from '@/components/SiteHeader';
 import { SiteFooter } from '@/components/SiteFooter';
 import { TrumpScrolly } from '@/components/TrumpScrolly';
 import { getPersonBySlug, getQuotesByPerson } from '@/lib/data';
+import { TRUMP_SLUG } from '@/lib/trump';
 
 export async function generateMetadata(): Promise<Metadata> {
   const base = process.env.NEXT_PUBLIC_SITE_URL ?? 'http://localhost:3000';
@@ -25,7 +26,7 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 export default async function StoryPage() {
-  const trumpSlug = 'donald-trump';
+  const trumpSlug = TRUMP_SLUG;
 
   const p = await getPersonBySlug(trumpSlug);
   if (!p) return notFound();

@@ -123,6 +123,38 @@ export const getTopicsWithCounts = cache(async () => {
   });
 });
 
+export const getTopicsWithCountsByPerson = cache(async (personSlug: string) => {
+  const grouped = await prisma.quoteTopic.groupBy({
+    by: ['topicId'],
+    where: {
+      quote: {
+        person: {
+          slug: personSlug,
+        },
+      },
+    },
+    _count: { topicId: true },
+    orderBy: { _count: { topicId: 'desc' } },
+  });
+
+  const topicIds = grouped.map((g) => g.topicId);
+  if (!topicIds.length) return [] as Array<{ slug: string; name: string; n: number }>;
+
+  const topics = await prisma.topic.findMany({
+    where: { id: { in: topicIds } },
+    select: { id: true, slug: true, name: true },
+  });
+  const byId = new Map(topics.map((t) => [t.id, t] as const));
+
+  return grouped
+    .map((g) => {
+      const t = byId.get(g.topicId);
+      if (!t) return null;
+      return { slug: t.slug, name: t.name, n: g._count.topicId };
+    })
+    .filter((x): x is { slug: string; name: string; n: number } => Boolean(x));
+});
+
 export const getTopicBySlug = cache(async (slug: string) => {
   return prisma.topic.findUnique({ where: { slug } });
 });
@@ -400,4 +432,40 @@ export const getTrendingTopics = cache(async () => {
       };
     })
     .filter((x) => x.slug);
+});
+
+export const getTrendingTopicsByPerson = cache(async (personSlug: string) => {
+  const grouped = await prisma.quoteTopic.groupBy({
+    by: ['topicId'],
+    where: {
+      quote: {
+        person: {
+          slug: personSlug,
+        },
+      },
+    },
+    _count: { topicId: true },
+    orderBy: { _count: { topicId: 'desc' } },
+  });
+
+  const topicIds = grouped.map((g) => g.topicId);
+  if (!topicIds.length) return [] as Array<{ slug: string; name: string; n: number }>;
+
+  const topics = await prisma.topic.findMany({
+    where: { id: { in: topicIds } },
+    select: { id: true, slug: true, name: true },
+  });
+  const byId = new Map(topics.map((t) => [t.id, t] as const));
+
+  return grouped
+    .map((g) => {
+      const t = byId.get(g.topicId);
+      if (!t) return null;
+      return {
+        slug: t.slug,
+        name: t.name,
+        n: g._count.topicId,
+      };
+    })
+    .filter((x): x is { slug: string; name: string; n: number } => Boolean(x));
 });

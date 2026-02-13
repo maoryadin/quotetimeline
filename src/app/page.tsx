@@ -8,6 +8,7 @@ import { SiteFooter } from '@/components/SiteFooter';
 import { SearchBar } from '@/components/SearchBar';
 import { TrumpScrolly } from '@/components/TrumpScrolly';
 import { getPersonBySlug, getQuoteCountByPerson, getQuotesByPerson, getTopTopicsByPerson, getYearsForPerson } from '@/lib/data';
+import { TRUMP_SLUG } from '@/lib/trump';
 
 function toPage(s: string | undefined) {
   const n = Number(s);
@@ -62,7 +63,7 @@ export default async function Home({ searchParams }: Props) {
   const page = toPage(sp.page);
   const year = toYear(sp.year);
 
-  const trumpSlug = 'donald-trump';
+  const trumpSlug = TRUMP_SLUG;
   const pageSize = 50;
 
   const pageHref = (targetPage: number, nextYear?: number | null) => {

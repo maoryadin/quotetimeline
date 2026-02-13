@@ -4,7 +4,8 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import { SiteHeader } from '@/components/SiteHeader';
 import { SiteFooter } from '@/components/SiteFooter';
-import { getTopicsWithCounts } from '@/lib/data';
+import { getTopicsWithCountsByPerson } from '@/lib/data';
+import { TRUMP_SLUG } from '@/lib/trump';
 
 export async function generateMetadata(): Promise<Metadata> {
   const base = process.env.NEXT_PUBLIC_SITE_URL ?? 'http://localhost:3000';
@@ -23,7 +24,7 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 export default async function TopicsPage() {
-  const topics = await getTopicsWithCounts();
+  const topics = await getTopicsWithCountsByPerson(TRUMP_SLUG);
 
   return (
     <>
@@ -61,7 +62,7 @@ export default async function TopicsPage() {
                       {t.name}
                     </Link>
                     <div className="rounded-full bg-slate-900 px-2.5 py-1 text-xs font-medium text-white dark:bg-white dark:text-slate-900">
-                      {t._count.quotes}
+                      {t.n}
                     </div>
                   </div>
                   <div className="mt-3 text-xs text-slate-500 dark:text-slate-400">/topic/{t.slug}</div>

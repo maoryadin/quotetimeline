@@ -4,7 +4,8 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import { SiteFooter } from '@/components/SiteFooter';
 import { SiteHeader } from '@/components/SiteHeader';
-import { getTrendingTopics } from '@/lib/data';
+import { getTrendingTopicsByPerson } from '@/lib/data';
+import { TRUMP_SLUG } from '@/lib/trump';
 
 export async function generateMetadata(): Promise<Metadata> {
   const base = process.env.NEXT_PUBLIC_SITE_URL ?? 'http://localhost:3000';
@@ -24,7 +25,7 @@ export async function generateMetadata(): Promise<Metadata> {
 
 export default async function TrendingPage() {
   // v1 “trending” = topic frequency across indexed quotes.
-  const ranked = await getTrendingTopics();
+  const ranked = await getTrendingTopicsByPerson(TRUMP_SLUG);
 
   return (
     <>
