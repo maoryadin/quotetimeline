@@ -115,9 +115,9 @@ export default async function Home({ searchParams }: Props) {
               </Link>
               <Link
                 className="qt-focus rounded-xl border border-slate-200 bg-white/80 px-4 py-2 text-sm font-medium text-slate-900 hover:bg-white dark:border-white/10 dark:bg-black/20 dark:text-slate-100"
-                href="/story"
+                href="/scrolly"
               >
-                Story mode (100 quotes)
+                Scrolly mode (100 quotes)
               </Link>
               <Link
                 className="qt-focus rounded-xl border border-slate-200 bg-white/80 px-4 py-2 text-sm font-medium text-slate-900 hover:bg-white dark:border-white/10 dark:bg-black/20 dark:text-slate-100"

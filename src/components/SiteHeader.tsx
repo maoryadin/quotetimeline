@@ -54,11 +54,11 @@ export function SiteHeader() {
             Timeline
           </Link>
           <Link
-            href="/story"
-            aria-current={isActive('/story') ? 'page' : undefined}
-            className={navLinkClass(isActive('/story'))}
+            href="/scrolly"
+            aria-current={isActive('/scrolly') ? 'page' : undefined}
+            className={navLinkClass(isActive('/scrolly'))}
           >
-            Story mode
+            Scrolly
           </Link>
           <Link
             href="/topics"
