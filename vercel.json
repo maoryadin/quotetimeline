@@ -1,0 +1,8 @@
+{
+  "crons": [
+    {
+      "path": "/api/cron/market-warm?secret=@cron_secret",
+      "schedule": "15 */6 * * *"
+    }
+  ]
+}
