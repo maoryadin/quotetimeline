@@ -62,14 +62,14 @@ export default async function TopicPage({ params, searchParams }: Props) {
       <SiteHeader />
       <main id="main" className="mx-auto max-w-5xl px-4 py-10 sm:px-6">
         <div className="flex items-center justify-between gap-3">
-          <Link href="/" className="text-sm text-slate-600 hover:underline dark:text-slate-300">
+          <Link href="/" className="qt-focus text-sm text-slate-600 hover:underline dark:text-slate-300">
             ← Home
           </Link>
           <div className="flex items-center gap-3">
-            <Link href="/trending" className="text-sm text-slate-600 hover:underline dark:text-slate-300">
+            <Link href="/trending" className="qt-focus text-sm text-slate-600 hover:underline dark:text-slate-300">
               Trending
             </Link>
-            <Link href="/search" className="text-sm text-slate-600 hover:underline dark:text-slate-300">
+            <Link href="/search" className="qt-focus text-sm text-slate-600 hover:underline dark:text-slate-300">
               Search
             </Link>
           </div>
@@ -122,7 +122,7 @@ export default async function TopicPage({ params, searchParams }: Props) {
           <div className="mt-6 flex items-center justify-between gap-3">
             {page > 1 ? (
               <Link
-                className="rounded-xl border border-slate-200/70 bg-white/60 px-4 py-2 text-sm shadow-sm hover:bg-white dark:border-white/10 dark:bg-black/20"
+                className="qt-focus rounded-xl border border-slate-200/70 bg-white/60 px-4 py-2 text-sm shadow-sm hover:bg-white dark:border-white/10 dark:bg-black/20"
                 href={`/topic/${t.slug}?page=${page - 1}`}
               >
                 ← Newer
@@ -133,7 +133,7 @@ export default async function TopicPage({ params, searchParams }: Props) {
 
             {page * pageSize < totalQuotes ? (
               <Link
-                className="rounded-xl border border-slate-200/70 bg-white/60 px-4 py-2 text-sm shadow-sm hover:bg-white dark:border-white/10 dark:bg-black/20"
+                className="qt-focus rounded-xl border border-slate-200/70 bg-white/60 px-4 py-2 text-sm shadow-sm hover:bg-white dark:border-white/10 dark:bg-black/20"
                 href={`/topic/${t.slug}?page=${page + 1}`}
               >
                 Older →

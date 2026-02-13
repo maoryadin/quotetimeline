@@ -82,10 +82,10 @@ export default async function QuotePage({ params }: Props) {
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
       <main id="main" className="mx-auto max-w-5xl px-4 py-10 sm:px-6">
         <div className="flex items-center justify-between gap-3">
-          <Link href={`/#q=${encodeURIComponent(q.slug)}`} className="text-sm text-slate-600 hover:underline dark:text-slate-300">
+          <Link href={`/#q=${encodeURIComponent(q.slug)}`} className="qt-focus text-sm text-slate-600 hover:underline dark:text-slate-300">
             ← Back to timeline
           </Link>
-          <Link href="/search" className="text-sm text-slate-600 hover:underline dark:text-slate-300">
+          <Link href="/search" className="qt-focus text-sm text-slate-600 hover:underline dark:text-slate-300">
             Search →
           </Link>
         </div>
@@ -129,7 +129,7 @@ export default async function QuotePage({ params }: Props) {
               {q.topics.map((t) => (
                 <Link
                   key={t.slug}
-                  className="rounded-full border border-slate-200 bg-white/80 px-3 py-1 text-xs text-slate-900 hover:bg-white dark:border-white/10 dark:bg-black/20 dark:text-slate-100"
+                  className="qt-focus rounded-full border border-slate-200 bg-white/80 px-3 py-1 text-xs text-slate-900 hover:bg-white dark:border-white/10 dark:bg-black/20 dark:text-slate-100"
                   href={`/topic/${t.slug}`}
                 >
                   {t.name}

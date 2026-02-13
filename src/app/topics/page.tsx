@@ -30,10 +30,10 @@ export default async function TopicsPage() {
       <SiteHeader />
       <main id="main" className="mx-auto max-w-5xl px-4 py-10 sm:px-6">
         <div className="flex items-center justify-between gap-3">
-          <Link href="/" className="text-sm text-slate-600 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2 focus-visible:ring-offset-white dark:text-slate-300 dark:focus-visible:ring-offset-black">
+          <Link href="/" className="qt-focus text-sm text-slate-600 hover:underline dark:text-slate-300">
             ← Home
           </Link>
-          <Link href="/search" className="text-sm text-slate-600 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2 focus-visible:ring-offset-white dark:text-slate-300 dark:focus-visible:ring-offset-black">
+          <Link href="/search" className="qt-focus text-sm text-slate-600 hover:underline dark:text-slate-300">
             Search →
           </Link>
         </div>
@@ -55,7 +55,7 @@ export default async function TopicsPage() {
                 >
                   <div className="flex items-center justify-between gap-3">
                     <Link
-                      className="text-base font-semibold text-slate-900 hover:underline dark:text-slate-100"
+                      className="qt-focus text-base font-semibold text-slate-900 hover:underline dark:text-slate-100"
                       href={`/topic/${t.slug}`}
                     >
                       {t.name}

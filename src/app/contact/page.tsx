@@ -39,7 +39,7 @@ export default function ContactPage() {
             Email:
             <div className="mt-2 rounded-xl border border-slate-200/70 bg-white/70 p-4 font-mono text-sm dark:border-white/10 dark:bg-black/20">
               {SITE.contactEmail ? (
-                <a className="text-indigo-700 hover:underline dark:text-indigo-300" href={`mailto:${SITE.contactEmail}`}>
+                <a className="qt-focus text-indigo-700 hover:underline dark:text-indigo-300" href={`mailto:${SITE.contactEmail}`}>
                   {SITE.contactEmail}
                 </a>
               ) : (

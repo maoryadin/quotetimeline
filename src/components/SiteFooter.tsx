@@ -14,13 +14,13 @@ export function SiteFooter() {
           </div>
 
           <nav className="flex flex-wrap gap-x-4 gap-y-2 text-sm">
-            <Link className="text-slate-600 hover:underline dark:text-slate-300" href="/about">
+            <Link className="qt-focus text-slate-600 hover:underline dark:text-slate-300" href="/about">
               About
             </Link>
-            <Link className="text-slate-600 hover:underline dark:text-slate-300" href="/sources">
+            <Link className="qt-focus text-slate-600 hover:underline dark:text-slate-300" href="/sources">
               Sources
             </Link>
-            <Link className="text-slate-600 hover:underline dark:text-slate-300" href="/contact">
+            <Link className="qt-focus text-slate-600 hover:underline dark:text-slate-300" href="/contact">
               Contact
             </Link>
           </nav>

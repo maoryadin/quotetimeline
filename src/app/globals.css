@@ -40,6 +40,14 @@ a {
   }
 }
 
+@layer utilities {
+  /* Consistent, accessible focus ring across the app (keyboard-only via :focus-visible). */
+  .qt-focus {
+    @apply focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2;
+    @apply focus-visible:ring-offset-[rgb(var(--background))];
+  }
+}
+
 /* Hide scrollbars for small horizontal navs (mobile polish). */
 .no-scrollbar {
   scrollbar-width: none; /* Firefox */
