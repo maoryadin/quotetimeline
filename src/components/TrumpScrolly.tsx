@@ -10,13 +10,25 @@ type Props = {
 };
 
 export function TrumpScrolly({ quotes }: Props) {
+  const parseSlugFromHash = (rawHash: string) => {
+    const hash = rawHash.replace(/^#/, '');
+    const encoded = hash.startsWith('q=') ? hash.slice(2) : hash.startsWith('quote-') ? hash.slice('quote-'.length) : '';
+    if (!encoded) return '';
+
+    // Hash fragments might be URI-encoded (because slugs can contain spaces/utf8 in the future).
+    try {
+      return decodeURIComponent(encoded);
+    } catch {
+      return encoded;
+    }
+  };
+
   const [activeId, setActiveId] = useState<string | null>(() => {
     const first = quotes[0]?.id ?? null;
     if (!first) return null;
     if (typeof window === 'undefined') return first;
 
-    const hash = window.location.hash.replace(/^#/, '');
-    const slug = hash.startsWith('q=') ? hash.slice(2) : hash.startsWith('quote-') ? hash.slice('quote-'.length) : '';
+    const slug = parseSlugFromHash(window.location.hash);
     if (!slug) return first;
 
     const target = quotes.find((q) => q.slug === slug);
@@ -68,8 +80,7 @@ export function TrumpScrolly({ quotes }: Props) {
     const feed = feedRef.current;
     if (!feed || !quotes.length) return;
 
-    const hash = window.location.hash.replace(/^#/, '');
-    const slug = hash.startsWith('q=') ? hash.slice(2) : hash.startsWith('quote-') ? hash.slice('quote-'.length) : '';
+    const slug = parseSlugFromHash(window.location.hash);
     if (!slug) return;
 
     const target = quotes.find((q) => q.slug === slug);
@@ -190,7 +201,7 @@ export function TrumpScrolly({ quotes }: Props) {
 
       <div
         ref={feedRef}
-        className="order-2 space-y-3 lg:order-2 lg:h-[calc(100vh-7rem)] lg:overflow-y-auto lg:pr-2 lg:[scrollbar-gutter:stable]"
+        className="qt-scrollbar order-2 space-y-3 lg:order-2 lg:h-[calc(100vh-7rem)] lg:overflow-y-auto lg:pr-2 lg:[scrollbar-gutter:stable]"
       >
         {quotes.map((q) => {
           const isActive = q.id === activeId;
@@ -230,7 +241,7 @@ export function TrumpScrolly({ quotes }: Props) {
                     type="button"
                     onClick={(e) => {
                       e.preventDefault();
-                      const url = `${window.location.origin}/#q=${encodeURIComponent(q.slug)}`;
+                      const url = `${window.location.origin}${window.location.pathname}#q=${encodeURIComponent(q.slug)}`;
                       navigator.clipboard
                         .writeText(url)
                         .then(() => setCopiedSlug(q.slug))
@@ -241,9 +252,9 @@ export function TrumpScrolly({ quotes }: Props) {
                         });
                     }}
                     aria-label={`Copy link to quote from ${q.date}`}
-                    className="text-[11px] font-medium text-slate-500 hover:text-slate-700 hover:underline dark:text-slate-400 dark:hover:text-slate-200"
+                    className="rounded-md text-[11px] font-medium text-slate-500 hover:text-slate-700 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2 focus-visible:ring-offset-white dark:text-slate-400 dark:hover:text-slate-200 dark:focus-visible:ring-offset-black"
                   >
-                    {copiedSlug === q.slug ? 'Copied' : 'Copy link'}
+                    <span aria-live="polite">{copiedSlug === q.slug ? 'Copied' : 'Copy link'}</span>
                   </button>
 
                   {q.topics.length ? (
@@ -252,7 +263,7 @@ export function TrumpScrolly({ quotes }: Props) {
                         <Link
                           key={t.slug}
                           href={`/topic/${t.slug}`}
-                          className="rounded-full border border-slate-200/70 bg-white/70 px-2 py-0.5 text-[11px] text-slate-700 hover:bg-white dark:border-white/10 dark:bg-black/20 dark:text-slate-200"
+                          className="rounded-full border border-slate-200/70 bg-white/70 px-2 py-0.5 text-[11px] text-slate-700 hover:bg-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2 focus-visible:ring-offset-white dark:border-white/10 dark:bg-black/20 dark:text-slate-200 dark:focus-visible:ring-offset-black"
                         >
                           {t.name}
                         </Link>
