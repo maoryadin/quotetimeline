@@ -66,9 +66,10 @@ export default async function Home({ searchParams }: Props) {
               Trump timeline • Verbatim quotes • Primary sources
             </div>
 
-            <h1 className="mt-5 text-4xl font-semibold tracking-tight sm:text-5xl">{p.name} timeline (sourced quotes)</h1>
+            <h1 className="mt-5 text-4xl font-semibold tracking-tight sm:text-5xl">{p.name} timeline</h1>
             <p className="mt-4 text-slate-600 dark:text-slate-300">
-              {p.description ?? 'A neutral, source-first index of public statements.'} Scroll the feed to see the sticky market window update, and click any quote to view the primary source.
+              {p.description ?? 'A neutral, source-first index of public statements.'} Scroll the timeline and watch the sticky 7-day
+              market window update as you move from quote to quote.
             </p>
 
             <div className="mt-6">
@@ -80,45 +81,30 @@ export default async function Home({ searchParams }: Props) {
                 className="rounded-xl bg-slate-900 px-4 py-2 text-sm font-medium text-white hover:bg-slate-800 dark:bg-white dark:text-slate-900"
                 href="#quotes"
               >
-                Browse quotes
+                Start scrolling
+              </Link>
+              <Link
+                className="rounded-xl border border-slate-200 bg-white/80 px-4 py-2 text-sm font-medium text-slate-900 hover:bg-white dark:border-white/10 dark:bg-black/20 dark:text-slate-100"
+                href="/story"
+              >
+                Story mode (100 quotes)
               </Link>
               <Link
                 className="rounded-xl border border-slate-200 bg-white/80 px-4 py-2 text-sm font-medium text-slate-900 hover:bg-white dark:border-white/10 dark:bg-black/20 dark:text-slate-100"
                 href="/trending"
               >
-                See what’s trending
+                Trending topics
               </Link>
             </div>
           </div>
         </section>
 
-        <section className="mt-10">
-          <div className="flex items-end justify-between gap-4">
-            <h2 className="text-lg font-semibold">Top topics</h2>
-            <div className="text-sm text-slate-500 dark:text-slate-400">Jump into a topic timeline</div>
-          </div>
-
-          <ul className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2">
-            {topTopics.map((t) => (
-              <li
-                key={t.slug}
-                className="rounded-2xl border border-slate-200/70 bg-white/60 p-5 shadow-sm hover:bg-white dark:border-white/10 dark:bg-black/20"
-              >
-                <Link className="block" href={`/topic/${t.slug}`}>
-                  <div className="text-base font-semibold text-slate-900 dark:text-slate-100">{t.name}</div>
-                  <div className="mt-2 text-xs text-slate-500 dark:text-slate-400">{t.n} quotes</div>
-                </Link>
-              </li>
-            ))}
-          </ul>
-
-          {!topTopics.length ? <div className="mt-4 text-sm text-slate-600 dark:text-slate-300">No topics yet.</div> : null}
-        </section>
-
         <section className="mt-10" id="quotes">
-          <h2 className="text-lg font-semibold">Quotes</h2>
-          <div className="mt-2 text-sm text-slate-600 dark:text-slate-300">
-            Page {page} of {Math.max(1, Math.ceil(totalQuotes / pageSize))} • {totalQuotes} total
+          <div className="flex flex-wrap items-baseline justify-between gap-3">
+            <h2 className="text-lg font-semibold">Timeline</h2>
+            <div className="text-sm text-slate-600 dark:text-slate-300">
+              Page {page} of {Math.max(1, Math.ceil(totalQuotes / pageSize))} • {totalQuotes} total
+            </div>
           </div>
 
           {page === 1 ? (
@@ -192,6 +178,29 @@ export default async function Home({ searchParams }: Props) {
           <div className="mt-4 text-xs text-slate-500 dark:text-slate-400">
             Data note: this build reads from Postgres (seeded with a small, source-backed starter set).
           </div>
+        </section>
+
+        <section className="mt-12" id="topics">
+          <div className="flex items-end justify-between gap-4">
+            <h2 className="text-lg font-semibold">Top topics</h2>
+            <div className="text-sm text-slate-500 dark:text-slate-400">Jump into a topic timeline</div>
+          </div>
+
+          <ul className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2">
+            {topTopics.map((t) => (
+              <li
+                key={t.slug}
+                className="rounded-2xl border border-slate-200/70 bg-white/60 p-5 shadow-sm hover:bg-white dark:border-white/10 dark:bg-black/20"
+              >
+                <Link className="block" href={`/topic/${t.slug}`}>
+                  <div className="text-base font-semibold text-slate-900 dark:text-slate-100">{t.name}</div>
+                  <div className="mt-2 text-xs text-slate-500 dark:text-slate-400">{t.n} quotes</div>
+                </Link>
+              </li>
+            ))}
+          </ul>
+
+          {!topTopics.length ? <div className="mt-4 text-sm text-slate-600 dark:text-slate-300">No topics yet.</div> : null}
         </section>
 
         <SiteFooter />
