@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
 import { fetchStooqDailyCloses } from '@/lib/market/stooq';
+import { fetchFreDDailyCloses } from '@/lib/market/fred';
 
 function parseISODate(s: string | null): Date | null {
   if (!s) return null;
@@ -22,6 +23,17 @@ function addDays(d: Date, days: number) {
 }
 
 const ALLOWED_SYMBOLS = new Set(['spy.us', '^spx', '^vix', 'vxx.us']);
+
+function providerForSymbol(symbol: string): { provider: 'stooq' | 'fred'; id: string } {
+  // Our UI uses a small set of conventional symbols.
+  // Map them to provider-specific identifiers.
+  if (symbol === '^spx') return { provider: 'fred', id: 'SP500' };
+  if (symbol === '^vix') return { provider: 'fred', id: 'VIXCLS' };
+
+  // Fallback to Stooq symbol passthrough for ETFs.
+  return { provider: 'stooq', id: symbol };
+}
+
 
 export async function GET(req: Request) {
   const url = new URL(req.url);
@@ -104,7 +116,13 @@ export async function GET(req: Request) {
       const importStart = addDays(start, -10);
       const importEnd = addDays(end, 10);
 
-      const series = await fetchStooqDailyCloses(symbol);
+      const mapping = providerForSymbol(symbol);
+
+      const series =
+        mapping.provider === 'fred'
+          ? await fetchFreDDailyCloses(mapping.id)
+          : await fetchStooqDailyCloses(mapping.id);
+
       const slice = series.filter((p) => {
         const d = parseISODate(p.date);
         if (!d) return false;
@@ -125,11 +143,11 @@ export async function GET(req: Request) {
                 symbol,
                 date: new Date(`${p.date}T00:00:00Z`),
                 close: p.close,
-                provider: 'stooq',
+                provider: mapping.provider,
               },
               update: {
                 close: p.close,
-                provider: 'stooq',
+                provider: mapping.provider,
               },
             }),
           ),
