@@ -19,7 +19,7 @@ type ReactionSummary = {
 // Keep a small cap so we don't grow unbounded during long scroll sessions.
 const MAX_SERIES_CACHE = 200;
 const seriesCache = new Map<string, SeriesResponse>();
-const inflight = new Map<string, Promise<SeriesResponse>>();
+const inflight = new Map<string, Promise<Record<string, SeriesResponse | undefined>>>();
 
 function touchCache(key: string, value: SeriesResponse) {
   // Map iteration order is insertion order; delete+set moves the key to the end (LRU-ish).
@@ -101,31 +101,45 @@ function mockSeries(symbol: string, anchorDate: string): SeriesResponse {
   return { symbol, points };
 }
 
-async function fetchSeries(symbol: string, anchorDate: string) {
-  const url = `/api/market?symbol=${encodeURIComponent(symbol)}&anchor=${encodeURIComponent(anchorDate)}&days=7`;
+type BatchResponse = {
+  anchor: string;
+  days: number;
+  series: Record<string, SeriesResponse>;
+};
+
+async function fetchBatch(anchorDate: string) {
+  const symbols = ['^spx', '^vix'];
+  const url = `/api/market/batch?symbols=${encodeURIComponent(symbols.join(','))}&anchor=${encodeURIComponent(anchorDate)}&days=7`;
   const res = await fetch(url);
-  if (!res.ok) throw new Error(`market series failed: ${res.status}`);
-  return (await res.json()) as SeriesResponse;
+  if (!res.ok) throw new Error(`market batch failed: ${res.status}`);
+  return (await res.json()) as BatchResponse;
 }
 
-async function fetchSeriesCached(symbol: string, anchorDate: string) {
-  const key = `${symbol}::${anchorDate}`;
+async function fetchBatchCached(anchorDate: string) {
+  // Cache per-series, but coordinate fetches by anchor so we only hit the API once.
+  const key = `batch::${anchorDate}`;
 
-  const cached = seriesCache.get(key);
-  if (cached) {
-    // Refresh LRU order.
-    touchCache(key, cached);
-    return cached;
+  const cachedSpx = seriesCache.get(`^spx::${anchorDate}`);
+  const cachedVix = seriesCache.get(`^vix::${anchorDate}`);
+  if (cachedSpx && cachedVix) {
+    touchCache(`^spx::${anchorDate}`, cachedSpx);
+    touchCache(`^vix::${anchorDate}`, cachedVix);
+    return { '^spx': cachedSpx, '^vix': cachedVix };
   }
 
   const existing = inflight.get(key);
   if (existing) return existing;
 
-  const p = fetchSeries(symbol, anchorDate)
-    .then((series) => {
-      touchCache(key, series);
+  const p = fetchBatch(anchorDate)
+    .then((b) => {
+      const spx = b.series['^spx'];
+      const vix = b.series['^vix'];
+
+      if (spx) touchCache(`^spx::${anchorDate}`, spx);
+      if (vix) touchCache(`^vix::${anchorDate}`, vix);
+
       inflight.delete(key);
-      return series;
+      return { '^spx': spx, '^vix': vix };
     })
     .catch((err) => {
       inflight.delete(key);
@@ -150,12 +164,17 @@ export function MarketMiniChart({ anchorDate }: Props) {
 
     // Small debounce so quick scroll bursts only fetch the final anchor.
     const t = window.setTimeout(() => {
-      Promise.all([fetchSeriesCached('^spx', anchorDate), fetchSeriesCached('^vix', anchorDate)])
-        .then(([a, b]) => {
+      fetchBatchCached(anchorDate)
+        .then((b) => {
           if (cancelled) return;
+
+          const a = b['^spx'];
+          const c = b['^vix'];
+          if (!a || !c) throw new Error('missing batch series');
+
           setDataMode('live');
           setSpx({ anchorDate, series: a });
-          setVix({ anchorDate, series: b });
+          setVix({ anchorDate, series: c });
         })
         .catch(() => {
           // Graceful fallback: keep the UI interactive even if the API/provider is down.
